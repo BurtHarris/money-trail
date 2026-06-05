@@ -1,0 +1,78 @@
+name: money-trail
+
+services:
+  airflow:
+    build: .
+    container_name: money-trail-airflow
+    ports:
+      - "8080:8080"
+    environment:
+      AIRFLOW_HOME: /app
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__CORE__SQL_ALCHEMY_CONN: sqlite:////app/data/airflow.db
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      AIRFLOW_ADMIN_USERNAME: devadmin
+      AIRFLOW_ADMIN_PASSWORD: devadmin
+      AIRFLOW_ADMIN_EMAIL: admin@localhost
+      AIRFLOW_ADMIN_FIRSTNAME: Dev
+      AIRFLOW_ADMIN_LASTNAME: Admin
+    volumes:
+      - ./dags:/app/dags
+      - ./dbt:/app/dbt
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./scripts:/app/scripts
+    develop:
+      watch:
+        - path: ./dags
+          action: sync
+        - path: ./dbt
+          action: sync
+        - path: ./scripts
+          action: sync
+    depends_on:
+      - init-airflow
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  init-airflow:
+    build: .
+    container_name: money-trail-init
+    environment:
+      AIRFLOW_HOME: /app
+      AIRFLOW__CORE__SQL_ALCHEMY_CONN: sqlite:////app/data/airflow.db
+    volumes:
+      - ./data:/app/data
+    command: >
+      bash -c "
+        airflow db migrate &&
+        airflow users create --username devadmin --password devadmin --firstname Dev --lastname Admin --role Admin --email admin@localhost || true
+      "
+
+  scheduler:
+    build: .
+    container_name: money-trail-scheduler
+    environment:
+      AIRFLOW_HOME: /app
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__CORE__SQL_ALCHEMY_CONN: sqlite:////app/data/airflow.db
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+    volumes:
+      - ./dags:/app/dags
+      - ./dbt:/app/dbt
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./scripts:/app/scripts
+    develop:
+      watch:
+        - path: ./dags
+          action: sync
+        - path: ./scripts
+          action: sync
+    command: airflow scheduler
+    depends_on:
+      - init-airflow
