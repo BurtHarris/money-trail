@@ -1,0 +1,29 @@
+data/
+.airflow/
+logs/
+dbt/target/
+dbt/dbt_packages/
+.env
+__pycache__/
+*.pyc
+
+# Airflow runtime artifacts
+airflow-webserver.pid
+airflow-scheduler.pid
+airflow-worker.pid
+airflow-triggerer.pid
+*.pid
+*.pid.lock
+*.sqlite
+*.sqlite3
+
+# Python local environment and tooling caches
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Local editor/OS noise
+.DS_Store
+Thumbs.db

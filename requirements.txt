@@ -1,0 +1,11 @@
+apache-airflow==2.9.3
+apache-airflow-providers-http==4.13.0
+apache-airflow-providers-openlineage==1.8.0
+dbt-core
+dbt-duckdb
+duckdb==1.0.0
+openlineage-python==1.20.6
+pandas==2.2.2
+pyarrow==16.1.0
+requests==2.32.3
+sqlalchemy==1.4.54
