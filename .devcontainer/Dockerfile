@@ -5,16 +5,18 @@ ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
+RUN set -eux; \
+    rm -f /etc/apt/sources.list.d/yarn.list /etc/apt/sources.list.d/yarn*.list || true; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends \
         build-essential \
         curl \
         git \
         jq \
         libpq-dev \
         procps \
-        sqlite3 \
-    && rm -rf /var/lib/apt/lists/*
+        sqlite3; \
+    rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
