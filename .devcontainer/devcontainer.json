@@ -17,7 +17,7 @@
   "containerEnv": {
     "AIRFLOW_HOME": "/workspaces/money-trail/.airflow",
     "AIRFLOW__CORE__LOAD_EXAMPLES": "False",
-    "AIRFLOW__CORE__EXECUTOR": "LocalExecutor",
+    "AIRFLOW__CORE__EXECUTOR": "SequentialExecutor",
     "AIRFLOW__DATABASE__SQL_ALCHEMY_CONN": "sqlite:////workspaces/money-trail/.airflow/airflow.db",
     "AIRFLOW__CORE__FERNET_KEY": "",
     "AIRFLOW__WEBSERVER__EXPOSE_CONFIG": "True",
@@ -45,8 +45,8 @@
       ]
     }
   },
-  "postCreateCommand": "bash scripts/bootstrap.sh",
-  "postStartCommand": "bash scripts/start_airflow.sh",
+  "postCreateCommand": "bash scripts/bootstrap.sh || true",
+  "postStartCommand": "bash scripts/start_airflow.sh || true",
   "mounts": [
     "source=money-trail-pip-cache,target=/home/vscode/.cache/pip,type=volume"
   ]
