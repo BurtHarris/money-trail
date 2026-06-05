@@ -1,0 +1,11 @@
+name: money_trail
+version: 1.0.0
+config-version: 2
+
+profile: money_trail
+
+model-paths: ["models"]
+target-path: "target"
+clean-targets:
+  - "target"
+  - "dbt_packages"

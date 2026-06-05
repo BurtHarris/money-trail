@@ -1,0 +1,53 @@
+{
+  "name": "money-trail",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
+  "remoteUser": "vscode",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
+  },
+  "forwardPorts": [8080],
+  "portsAttributes": {
+    "8080": {
+      "label": "Airflow Webserver"
+    }
+  },
+  "containerEnv": {
+    "AIRFLOW_HOME": "/workspaces/money-trail/.airflow",
+    "AIRFLOW__CORE__LOAD_EXAMPLES": "False",
+    "AIRFLOW__CORE__EXECUTOR": "LocalExecutor",
+    "AIRFLOW__DATABASE__SQL_ALCHEMY_CONN": "sqlite:////workspaces/money-trail/.airflow/airflow.db",
+    "AIRFLOW__CORE__FERNET_KEY": "",
+    "AIRFLOW__WEBSERVER__EXPOSE_CONFIG": "True",
+    "OPENLINEAGE_URL": "http://localhost:5000",
+    "OPENLINEAGE_NAMESPACE": "money-trail-dev",
+    "DBT_PROFILES_DIR": "/workspaces/money-trail/dbt"
+  },
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "python.analysis.typeCheckingMode": "basic",
+        "editor.formatOnSave": true,
+        "files.trimTrailingWhitespace": true
+      },
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-azuretools.vscode-docker",
+        "innoverio.vscode-dbt-power-user",
+        "charliermarsh.ruff",
+        "redhat.vscode-yaml",
+        "mtxr.sqltools",
+        "mtxr.sqltools-driver-sqlite"
+      ]
+    }
+  },
+  "postCreateCommand": "bash scripts/bootstrap.sh",
+  "postStartCommand": "bash scripts/start_airflow.sh",
+  "mounts": [
+    "source=money-trail-pip-cache,target=/home/vscode/.cache/pip,type=volume"
+  ]
+}
