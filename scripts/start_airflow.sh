@@ -2,7 +2,7 @@
 set -euo pipefail
 
 export AIRFLOW_HOME="${AIRFLOW_HOME:-/workspaces/money-trail/.airflow}"
-export AIRFLOW__DATABASE__SQL_ALCHEMY_CONN="${AIRFLOW__DATABASE__SQL_ALCHEMY_CONN:-sqlite:////workspaces/money-trail/.airflow/airflow.db}"
+export AIRFLOW__DATABASE__SQL_ALCHEMY_CONN="postgresql://airflow:[REDACTED]@localhost:5432/airflow"
 
 if pgrep -f "airflow webserver" >/dev/null 2>&1; then
   exit 0

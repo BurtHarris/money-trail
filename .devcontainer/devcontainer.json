@@ -8,22 +8,44 @@
   "features": {
     "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
   },
-  "forwardPorts": [8080],
+  "forwardPorts": [8080, 5432],
   "portsAttributes": {
     "8080": {
       "label": "Airflow Webserver"
+    },
+    "5432": {
+      "label": "PostgreSQL"
     }
   },
   "containerEnv": {
     "AIRFLOW_HOME": "/workspaces/money-trail/.airflow",
     "AIRFLOW__CORE__LOAD_EXAMPLES": "False",
     "AIRFLOW__CORE__EXECUTOR": "SequentialExecutor",
-    "AIRFLOW__DATABASE__SQL_ALCHEMY_CONN": "sqlite:////workspaces/money-trail/.airflow/airflow.db",
+    "AIRFLOW__DATABASE__SQL_ALCHEMY_CONN": "postgresql://airflow:airflow@localhost:5432/airflow",
     "AIRFLOW__CORE__FERNET_KEY": "",
     "AIRFLOW__WEBSERVER__EXPOSE_CONFIG": "True",
     "OPENLINEAGE_URL": "http://localhost:5000",
     "OPENLINEAGE_NAMESPACE": "money-trail-dev",
     "DBT_PROFILES_DIR": "/workspaces/money-trail/dbt"
+  },
+  "services": {
+    "postgres": {
+      "image": "postgres:16-alpine",
+      "environment": {
+        "POSTGRES_DB": "airflow",
+        "POSTGRES_USER": "airflow",
+        "POSTGRES_PASSWORD": "airflow"
+      },
+      "ports": ["5432:5432"],
+      "volumes": ["postgres-data:/var/lib/postgresql/data"],
+      "healthCheck": {
+        "test": ["CMD-SHELL", "pg_isready -U airflow -d airflow"],
+        "interval": 2,
+        "timeout": 5,
+        "retries": 5,
+        "startPeriod": 5
+      }
+    }
   },
   "customizations": {
     "vscode": {
@@ -41,7 +63,7 @@
         "charliermarsh.ruff",
         "redhat.vscode-yaml",
         "mtxr.sqltools",
-        "mtxr.sqltools-driver-sqlite"
+        "mtxr.sqltools-driver-postgres"
       ]
     }
   },
@@ -49,5 +71,8 @@
   "postStartCommand": "bash scripts/start_airflow.sh 2>&1 | head -20 || echo 'Airflow services started'",
   "mounts": [
     "source=money-trail-pip-cache,target=/home/vscode/.cache/pip,type=volume"
-  ]
+  ],
+  "volumes": {
+    "postgres-data": {}
+  }
 }
