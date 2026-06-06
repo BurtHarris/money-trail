@@ -1,0 +1,3 @@
+# dbt Owns All Cleaning and QA; Airflow Does Not Transform Data
+
+Airflow DAGs load raw FEC data into DuckDB exactly as downloaded — no cleaning, no type coercion, no deduplication. All cleaning (e.g., ZIP code truncation to 5 digits, name normalization) and QA (dbt tests for nulls, uniqueness, accepted values) lives in dbt models. Airflow triggers a scoped `dbt run --select tag:<file_type>` after each load; a nightly DAG runs a full `dbt build`. This keeps the extraction layer simple and auditable, and puts data quality logic where it is testable and version-controlled independently of the scheduler.
