@@ -5,27 +5,28 @@ Lightweight devcontainer-first workspace for FEC-oriented ELT development with A
 ## What is included
 
 - VS Code devcontainer for Python-based data engineering work
-- Apache Airflow 2.9 with a local SQLite-backed metadata database
+- Apache Airflow 2.9 with a PostgreSQL metadata database (replaces SQLite for concurrent worker support)
+- PostgreSQL 16 service running in the devcontainer
 - Example DAG that reads from an HTTP source and writes to DuckDB and SQLite
 - dbt starter project targeting DuckDB
 - OpenLineage Python and Airflow provider dependencies preinstalled
 
 ## Quick start
 
-1. Be sure you have up-to-date copies of docker desktop on your machine.
+1. Be sure you have up-to-date copies of Docker Desktop and VS Code on your machine.
 
 ```powershell
-winget update docker.Desktop vscode
+winget update docker.desktop vscode
 ```
 
-1. Open the repository in VS Code.
-2. Reopen in Container.
-3. Wait for the post-create bootstrap to finish.
-4. Open Airflow at http://localhost:8080
+2. Open the repository in VS Code.
+3. Reopen in Container.
+4. Wait for the post-create bootstrap to finish (this runs `airflow db migrate` against PostgreSQL).
+5. Open Airflow at http://localhost:8080
    - username: `devadmin`
    - password: `devadmin`
-5. Trigger the DAG `example_http_to_warehouse`.
-6. Run dbt commands from `dbt/`, for example:
+6. Trigger the DAG `example_http_to_warehouse`.
+7. Run dbt commands from `dbt/`, for example:
    - `dbt debug`
    - `dbt run`
 
