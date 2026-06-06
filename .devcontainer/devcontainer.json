@@ -5,8 +5,11 @@
     "context": ".."
   },
   "remoteUser": "vscode",
+  "init": true,
+  "overrideCommand": false,
   "features": {
-    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {}
   },
   "forwardPorts": [8080, 5432],
   "portsAttributes": {
@@ -21,16 +24,20 @@
     "AIRFLOW_HOME": "/workspaces/money-trail/.airflow",
     "AIRFLOW__CORE__LOAD_EXAMPLES": "False",
     "AIRFLOW__CORE__EXECUTOR": "SequentialExecutor",
-    "AIRFLOW__DATABASE__SQL_ALCHEMY_CONN": "postgresql://airflow:airflow@localhost:5432/airflow",
-    "AIRFLOW__CORE__FERNET_KEY": "",
+    "AIRFLOW__DATABASE__SQL_ALCHEMY_CONN": "postgresql://airflow:[REDACTED]@localhost:5432/airflow",
     "AIRFLOW__WEBSERVER__EXPOSE_CONFIG": "True",
     "OPENLINEAGE_URL": "http://localhost:5000",
     "OPENLINEAGE_NAMESPACE": "money-trail-dev",
     "DBT_PROFILES_DIR": "/workspaces/money-trail/dbt"
   },
+  "remoteEnv": {
+    "WORKDIR": "/workspaces/money-trail",
+    "OPENLINEAGE_NAMESPACE": "money-trail-dev",
+    "DBT_PROFILES_DIR": "/workspaces/money-trail/dbt"
+  },
   "services": {
     "postgres": {
-      "image": "postgres:16-alpine",
+      "image": "postgres:16.3-alpine",
       "environment": {
         "POSTGRES_DB": "airflow",
         "POSTGRES_USER": "airflow",
@@ -52,6 +59,17 @@
       "settings": {
         "python.defaultInterpreterPath": "/usr/local/bin/python",
         "python.analysis.typeCheckingMode": "basic",
+        "python.linting.enabled": true,
+        "python.linting.pylintEnabled": true,
+        "[python]": {
+          "editor.defaultFormatter": "charliermarsh.ruff",
+          "editor.formatOnSave": true
+        },
+        "[dbt]": {
+          "editor.formatOnSave": true
+        },
+        "dbt.parseOnSave": true,
+        "dbt.formatOnSave": true,
         "editor.formatOnSave": true,
         "files.trimTrailingWhitespace": true
       },
@@ -63,16 +81,20 @@
         "charliermarsh.ruff",
         "redhat.vscode-yaml",
         "mtxr.sqltools",
-        "mtxr.sqltools-driver-postgres"
+        "mtxr.sqltools-driver-postgres",
+        "GitHub.copilot",
+        "GitHub.copilot-chat"
       ]
     }
   },
-  "postCreateCommand": "bash scripts/bootstrap.sh 2>&1 | head -20 || echo 'Bootstrap completed with warnings'",
-  "postStartCommand": "bash scripts/start_airflow.sh 2>&1 | head -20 || echo 'Airflow services started'",
+  "postCreateCommand": "bash scripts/init_fernet_key.sh && bash scripts/bootstrap.sh 2>&1 | tail -50 || echo 'Bootstrap completed with warnings'",
+  "postStartCommand": "bash scripts/start_airflow.sh 2>&1 | grep -E '(ERROR|WARNING|READY|Listening)' || echo 'Airflow services started'",
   "mounts": [
-    "source=money-trail-pip-cache,target=/home/vscode/.cache/pip,type=volume"
+    "source=money-trail-pip-cache,target=/home/vscode/.cache/pip,type=volume",
+    "source=money-trail-build-cache,target=/home/vscode/.cache/docker,type=volume"
   ],
   "volumes": {
-    "postgres-data": {}
+    "postgres-data": {},
+    "money-trail-build-cache": {}
   }
 }
