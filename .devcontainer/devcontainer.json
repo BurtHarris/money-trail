@@ -1,14 +1,15 @@
 {
   "name": "money-trail",
   "build": {
-    "dockerfile": "Dockerfile",
+    "dockerfile": "../Dockerfile",
     "context": ".."
   },
   "remoteUser": "vscode",
   "init": true,
-  "overrideCommand": false,
+  "overrideCommand": true,
+  "command": "/bin/sh",
+  "args": ["-c", "while sleep 1000; do :; done"],
   "features": {
-    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
     "ghcr.io/devcontainers/features/github-cli:1": {}
   },
   "forwardPorts": [8080, 5432],
@@ -57,6 +58,7 @@
   "customizations": {
     "vscode": {
       "settings": {
+        "dev.containers.mountWaylandSocket": false,
         "python.defaultInterpreterPath": "/usr/local/bin/python",
         "python.analysis.typeCheckingMode": "basic",
         "python.linting.enabled": true,
