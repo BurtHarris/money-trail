@@ -26,7 +26,7 @@ RUN set -eux; \
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 ENV PATH="/root/.local/bin:${PATH}"
 
-COPY ../requirements.txt /tmp/requirements.txt
+COPY requirements.txt .env.example /tmp/
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv pip install --system -r /tmp/requirements.txt
 
