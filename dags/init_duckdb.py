@@ -17,7 +17,7 @@ from include.db_init import init_duckdb
 DUCKDB_PATH = Path("/workspaces/money-trail/data/duckdb/money_trail.duckdb")
 
 
-def _bootstrap_duckdb(**context) -> None:
+def _bootstrap_duckdb() -> None:
     DUCKDB_PATH.parent.mkdir(parents=True, exist_ok=True)
     init_duckdb(str(DUCKDB_PATH))
 

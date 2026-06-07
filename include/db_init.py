@@ -7,9 +7,13 @@ to run multiple times without error.
 
 from __future__ import annotations
 
+import re
+
 import duckdb
 
 SCHEMAS: list[str] = ["raw", "staging", "marts", "metadata"]
+
+_SAFE_IDENTIFIER_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 
 _CREATE_DOWNLOAD_STATE_SQL = """
 CREATE TABLE IF NOT EXISTS metadata._fec_download_state (
@@ -31,5 +35,7 @@ def init_duckdb(duckdb_path: str) -> None:
     """
     with duckdb.connect(duckdb_path) as con:
         for schema in SCHEMAS:
+            if not _SAFE_IDENTIFIER_RE.match(schema):
+                raise ValueError(f"Unsafe schema name: {schema!r}")
             con.execute(f"CREATE SCHEMA IF NOT EXISTS {schema}")
         con.execute(_CREATE_DOWNLOAD_STATE_SQL)
