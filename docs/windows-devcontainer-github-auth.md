@@ -9,24 +9,27 @@ Scope:
 
 ## Choose an auth path
 
-### Path A (recommended): Fine-grained token + setup script
+### Path A (default): Adaptive setup script (reuse `gh auth`, fallback to manual)
 
-Use this when you want least-privilege access scoped to this repository.
+Use this when you want an automated host-side flow with no browser token-creation step.
 Default behavior is session-only so your long-lived personal `gh auth login` style is not changed.
 
-1. Create a GitHub fine-grained personal access token with these settings:
-   - Resource owner: your account (or org that owns the repo)
-   - Repository access: Only select repositories -> `BurtHarris/money-trail`
-   - Repository permissions (minimum):
-     - Issues: Read and write
-     - Pull requests: Read and write
-     - Contents: Read-only
-   - Expiration: short-lived (recommended)
+1. Ensure you are already logged into `gh` on the Windows host:
+
+```powershell
+gh auth status
+```
+
 2. On Windows host PowerShell (repo root), run:
 
 ```powershell
 .\scripts\setup-gh-token.ps1
 ```
+
+Behavior:
+- Probes existing host `gh auth` and reuses its token if available.
+- If no reusable `gh` token is found, prompts for masked token paste.
+- On manual fallback, prints fine-grained token links and minimum permissions.
 
 3. If you need token injection after a VS Code/devcontainer restart, opt in to temporary persistence:
 
@@ -49,23 +52,32 @@ scripts/gh_auth_harden.sh --verify
 ```
 
 Why Path A is preferred:
-- Least-privilege and repo-scoped token model.
 - Consistent auth for local CLI-agent operations in containerized workflows.
-- Avoids depending on long-lived disk-persisted `gh auth login` state.
+- Reuses existing host `gh` authentication with less operator error.
 - Default session-only mode helps preserve personal interactive `gh` habits.
 
-### Path B (optional): PowerShell + `gh auth login` assisted flow
+### Path B (optional): Manual-only prep before running the script
 
-Use this only if you prioritize interactive CLI convenience over strict least-privilege token shaping.
+Use this if you need a tighter repo-scoped token than your current `gh auth` token scopes.
+
+GitHub does not provide a public CLI/API to auto-create fine-grained PATs. Creation is manual in the web UI.
+
+1. Create a GitHub fine-grained personal access token with these settings:
+   - Resource owner: your account (or org that owns the repo)
+   - Repository access: Only select repositories -> `BurtHarris/money-trail`
+   - Repository permissions (minimum):
+     - Issues: Read and write
+     - Pull requests: Read and write
+     - Contents: Read-only
+   - Expiration: short-lived (recommended)
+2. Run:
 
 ```powershell
-gh auth login --hostname github.com --web
-gh auth status
+.\scripts\setup-gh-token.ps1
 ```
 
 Important caveats:
-- This flow usually stores auth state for `gh` and may write token material under `~/.config/gh/hosts.yml`.
-- OAuth scopes from `gh auth login` are not as tightly constrained as a fine-grained PAT scoped to one repo.
+- Manual PAT creation requires browser interaction.
 - If you use this path, run hardening checks and clean up disk auth if required:
 
 ```bash

@@ -47,16 +47,14 @@
     "WORKDIR": "/workspaces/money-trail",
     "OPENLINEAGE_NAMESPACE": "money-trail-dev",
     "DBT_PROFILES_DIR": "/workspaces/money-trail/dbt",
-    "COMPOSE_PROGRESS": "plain",
-    "GH_TOKEN": "${localEnv:GH_TOKEN}",
-    "GITHUB_TOKEN": "${localEnv:GITHUB_TOKEN}"
+    "COMPOSE_PROGRESS": "plain"
   },
   "customizations": {
     "vscode": {
       "settings": {
         "dev.containers.mountWaylandSocket": false,
         "remote.restoreForwardedPorts": false,
-        "remote.autoForwardPorts": false,
+        "remote.autoForwardPorts": true,
         "python.defaultInterpreterPath": "/usr/local/bin/python",
         "python.analysis.typeCheckingMode": "basic",
         "python.linting.enabled": true,
@@ -81,13 +79,12 @@
         "charliermarsh.ruff",
         "redhat.vscode-yaml",
         "mtxr.sqltools",
-        "mtxr.sqltools-driver-postgres",
-        "GitHub.copilot",
+        "mtxr.sqltools-driver-sqlite",
         "GitHub.copilot-chat"
       ]
     }
   },
-  "postCreateCommand": "bash scripts/init_fernet_key.sh",
+  "postCreateCommand": "bash scripts/init_fernet_key.sh && echo '✓ Devcontainer ready'",
   "mounts": [
     "source=money-trail-pip-cache,target=/home/vscode/.cache/pip,type=volume",
     "source=money-trail-build-cache,target=/home/vscode/.cache/docker,type=volume"

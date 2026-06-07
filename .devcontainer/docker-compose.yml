@@ -1,46 +1,31 @@
-name: money-trail
+version: "3.9"
 
 services:
   devcontainer:
+  
     build:
       context: ..
-      dockerfile: Dockerfile
-    environment:
-      AIRFLOW__CORE__LOAD_EXAMPLES: "False"
-      AIRFLOW__CORE__EXECUTOR: "LocalExecutor"
-      AIRFLOW__CORE__SQL_ALCHEMY_CONN: "postgresql://airflow:airflow@postgres:5432/airflow"
-      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: "postgresql://airflow:airflow@postgres:5432/airflow"
-      POSTGRES_HOST: "postgres"
-      POSTGRES_PORT: "5432"
-      POSTGRES_DB: "airflow"
-      POSTGRES_USER: "airflow"
-      POSTGRES_PASSWORD: "airflow"
-    command: /bin/bash -c "bash scripts/start_airflow.sh; sleep infinity"
-    init: true
+      dockerfile: .devcontainer/Dockerfile
     volumes:
       - ..:/workspaces/money-trail:cached
-    ports:
-      - "8080:8080"
+      - /home/burth/.config/gh:/home/vscode/.config/gh:ro
+    command: sleep infinity
     depends_on:
-      postgres:
-        condition: service_healthy
+      - postgres
+    environment:
+      COMPOSE_PROGRESS: plain
 
   postgres:
-    image: postgres:16.3-alpine
+    image: postgres:15
+    restart: unless-stopped
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
     environment:
       POSTGRES_DB: airflow
       POSTGRES_USER: airflow
       POSTGRES_PASSWORD: airflow
     ports:
-      - "5433:5432"
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U airflow -d airflow"]
-      interval: 2s
-      timeout: 5s
-      retries: 5
-      start_period: 5s
+      - "5432:5432"
 
 volumes:
   postgres-data:
