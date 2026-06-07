@@ -48,6 +48,8 @@
     "vscode": {
       "settings": {
         "dev.containers.mountWaylandSocket": false,
+        "remote.restoreForwardedPorts": false,
+        "remote.autoForwardPorts": false,
         "python.defaultInterpreterPath": "/usr/local/bin/python",
         "python.analysis.typeCheckingMode": "basic",
         "python.linting.enabled": true,
