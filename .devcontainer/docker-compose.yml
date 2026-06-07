@@ -5,6 +5,16 @@ services:
     build:
       context: ..
       dockerfile: Dockerfile
+    environment:
+      AIRFLOW__CORE__LOAD_EXAMPLES: "False"
+      AIRFLOW__CORE__EXECUTOR: "LocalExecutor"
+      AIRFLOW__CORE__SQL_ALCHEMY_CONN: "postgresql://airflow:airflow@postgres:5432/airflow"
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: "postgresql://airflow:airflow@postgres:5432/airflow"
+      POSTGRES_HOST: "postgres"
+      POSTGRES_PORT: "5432"
+      POSTGRES_DB: "airflow"
+      POSTGRES_USER: "airflow"
+      POSTGRES_PASSWORD: "airflow"
     command: /bin/bash -c "bash scripts/start_airflow.sh; sleep infinity"
     init: true
     volumes:
