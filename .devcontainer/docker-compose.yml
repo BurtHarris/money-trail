@@ -5,10 +5,12 @@ services:
     build:
       context: ..
       dockerfile: Dockerfile
-    command: /bin/sh -c "while sleep 1000; do :; done"
+    command: /bin/bash -c "bash scripts/start_airflow.sh; sleep infinity"
     init: true
     volumes:
       - ..:/workspaces/money-trail:cached
+    ports:
+      - "8080:8080"
     depends_on:
       postgres:
         condition: service_healthy
