@@ -13,6 +13,20 @@ Issues and PRDs for this repo live as GitHub issues. Use the gh CLI for all oper
 
 Infer the repo from git remote -v - gh does this automatically when run inside a clone.
 
+## Authentication (secure default for agents)
+
+Use short-lived tokens via environment variables instead of disk-persisted `gh auth login` state.
+
+1. On Windows host PowerShell, run `.\scripts\setup-gh-token.ps1` from the repo root.
+2. Reopen the devcontainer so token env vars flow into the container runtime.
+3. Verify with `scripts/gh_auth_harden.sh --verify`.
+
+Security notes:
+
+- Avoid storing long-lived `oauth_token` values in `~/.config/gh/hosts.yml`.
+- Run `scripts/gh_auth_harden.sh --status` to audit current state.
+- If disk token storage exists, run `scripts/gh_auth_harden.sh --logout-disk-token`.
+
 ## When a skill says "publish to the issue tracker"
 
 Create a GitHub issue.
