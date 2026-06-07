@@ -1,12 +1,24 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-export AIRFLOW_HOME="${AIRFLOW_HOME:-/workspaces/money-trail/.airflow}"
-export AIRFLOW__DATABASE__SQL_ALCHEMY_CONN="postgresql://airflow:[REDACTED]@localhost:5432/airflow"
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-if pgrep -f "airflow webserver" >/dev/null 2>&1; then
-  exit 0
+bash "$script_dir/bootstrap.sh"
+
+export AIRFLOW_HOME="${AIRFLOW_HOME:-/workspaces/money-trail/.airflow}"
+POSTGRES_HOST="${POSTGRES_HOST:-127.0.0.1}"
+POSTGRES_PORT="${POSTGRES_PORT:-5432}"
+POSTGRES_DB="${POSTGRES_DB:-airflow}"
+POSTGRES_USER="${POSTGRES_USER:-airflow}"
+POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-airflow}"
+
+export AIRFLOW__DATABASE__SQL_ALCHEMY_CONN="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}"
+
+if ! pgrep -f "airflow scheduler" >/dev/null 2>&1; then
+  airflow scheduler > logs/airflow-scheduler.log 2>&1 &
 fi
 
-airflow scheduler > logs/airflow-scheduler.log 2>&1 &
-airflow webserver --port 8080 > logs/airflow-webserver.log 2>&1 &
+if ! pgrep -f "airflow webserver" >/dev/null 2>&1; then
+  rm -f "$AIRFLOW_HOME/airflow-webserver.pid"
+  airflow webserver --port 8080 > logs/airflow-webserver.log 2>&1 &
+fi
