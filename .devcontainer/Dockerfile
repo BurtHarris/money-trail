@@ -27,7 +27,6 @@ RUN set -eux; \
         xz-utils; \
     apt-get clean; \
     rm -rf /var/lib/apt/lists/*; \
-RUN set -eux; \
     case "${TARGETARCH}" in \
       "arm64") ARCH="arm64" ;; \
       "amd64") ARCH="x64" ;; \
