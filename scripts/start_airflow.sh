@@ -6,7 +6,7 @@ script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 bash "$script_dir/bootstrap.sh"
 
 export AIRFLOW_HOME="${AIRFLOW_HOME:-/workspaces/money-trail/.airflow}"
-POSTGRES_HOST="${POSTGRES_HOST:-127.0.0.1}"
+POSTGRES_HOST="${POSTGRES_HOST:-postgres}"
 POSTGRES_PORT="${POSTGRES_PORT:-5432}"
 POSTGRES_DB="${POSTGRES_DB:-airflow}"
 POSTGRES_USER="${POSTGRES_USER:-airflow}"
