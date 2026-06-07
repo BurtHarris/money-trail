@@ -34,43 +34,34 @@ winget update docker.desktop vscode
 
 Optional contributor setup (only if you will use Copilot agent GitHub issue/PR actions):
 
-1. On the Windows host (outside the container), run:
+1. Follow the Windows + devcontainer auth guide:
+   - [docs/windows-devcontainer-github-auth.md](docs/windows-devcontainer-github-auth.md)
+2. From the repo root on the Windows host, run:
 
 ```powershell
 .\scripts\setup-gh-token.ps1
 ```
-2. Reopen the container so GH_TOKEN / GITHUB_TOKEN are injected.
-3. In the container, run:
+   - Default is session-only and does not persist token env vars.
+3. If you need token injection after VS Code/devcontainer restart, run:
+
+```powershell
+.\scripts\setup-gh-token.ps1 -PersistUserScope
+```
+
+4. Reopen the container so GH_TOKEN / GITHUB_TOKEN are injected.
+5. In the container, run:
 ```bash
 scripts/gh_auth_harden.sh --status
 scripts/gh_auth_harden.sh --verify
 ```
-Why this is the safer default:
-- Token setup is optional and isolated to contributors who need GitHub issue/PR automation.
-- Fine-grained, least-privilege scopes reduce impact if a token is leaked.
-- Environment-variable auth avoids committing secrets into repo files.
-- gh hardening checks help prevent accidental use of disk-persisted oauth_token.
+6. When done with agent workflows, clear persisted vars:
 
-## Security notes
+```powershell
+.\scripts\setup-gh-token.ps1 -ClearUserScope
+```
 
-- GitHub token setup is optional and only needed for contributor GitHub issue/PR automation.
-- This host-token flow enables local GitHub CLI-backed agent actions in this workspace.
-- Cloud agents use GitHub-side auth/permissions and do not consume your local `GH_TOKEN` directly.
-- Local Airflow/dbt pipeline usage does not require a GitHub token.
-- Prefer fine-grained, least-privilege tokens scoped to this repository.
-- Use `GH_TOKEN`/`GITHUB_TOKEN` via host environment variables and avoid committing secrets to files.
-- Run `scripts/gh_auth_harden.sh --status` and `scripts/gh_auth_harden.sh --verify` in the container after setup.
-- If `~/.config/gh/hosts.yml` contains `oauth_token`, run `scripts/gh_auth_harden.sh --logout-disk-token`.
-- Current setup persists tokens at User scope for convenience; this is weaker than session-only auth. On shared machines, clear User-scope tokens when not needed.
-- If a token is exposed, revoke it immediately and create a new one.
-
-## Testing vs auth responsibilities
-
-- Testing does not require `GH_TOKEN` or `GITHUB_TOKEN`.
-- Run local manual and automated tests in the devcontainer.
-- Use CI for branch and PR validation.
-- GitHub token setup is only for local `gh` API operations and GitHub CLI-backed agent workflows (issues, comments, labels, PR actions).
-- Cloud-hosted agents use GitHub-side permissions and do not rely on local host token environment variables.
+Developer security/auth details (Windows + devcontainer):
+- [docs/windows-devcontainer-github-auth.md](docs/windows-devcontainer-github-auth.md)
 
 ## More docs
 

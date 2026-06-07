@@ -1,0 +1,91 @@
+# Windows + Devcontainer GitHub Auth Guide
+
+This guide is for Windows host + VS Code devcontainer workflows in this repository.
+
+Scope:
+- Focuses on GitHub auth for local `gh` operations and local GitHub CLI-backed agent actions.
+- Does not cover Linux host setup.
+- Does not change test execution flow (tests still run in devcontainer/CI).
+
+## Choose an auth path
+
+### Path A (recommended): Fine-grained token + setup script
+
+Use this when you want least-privilege access scoped to this repository.
+Default behavior is session-only so your long-lived personal `gh auth login` style is not changed.
+
+1. Create a GitHub fine-grained personal access token with these settings:
+   - Resource owner: your account (or org that owns the repo)
+   - Repository access: Only select repositories -> `BurtHarris/money-trail`
+   - Repository permissions (minimum):
+     - Issues: Read and write
+     - Pull requests: Read and write
+     - Contents: Read-only
+   - Expiration: short-lived (recommended)
+2. On Windows host PowerShell (repo root), run:
+
+```powershell
+.\scripts\setup-gh-token.ps1
+```
+
+3. If you need token injection after a VS Code/devcontainer restart, opt in to temporary persistence:
+
+```powershell
+.\scripts\setup-gh-token.ps1 -PersistUserScope
+```
+
+4. Reopen the devcontainer so `GH_TOKEN` / `GITHUB_TOKEN` are injected.
+5. In the container, run:
+
+```bash
+scripts/gh_auth_harden.sh --status
+scripts/gh_auth_harden.sh --verify
+```
+
+6. When done with agent workflows, clear persisted vars:
+
+```powershell
+.\scripts\setup-gh-token.ps1 -ClearUserScope
+```
+
+Why Path A is preferred:
+- Least-privilege and repo-scoped token model.
+- Consistent auth for local CLI-agent operations in containerized workflows.
+- Avoids depending on long-lived disk-persisted `gh auth login` state.
+- Default session-only mode helps preserve personal interactive `gh` habits.
+
+### Path B (optional): PowerShell + `gh auth login` assisted flow
+
+Use this only if you prioritize interactive CLI convenience over strict least-privilege token shaping.
+
+```powershell
+gh auth login --hostname github.com --web
+gh auth status
+```
+
+Important caveats:
+- This flow usually stores auth state for `gh` and may write token material under `~/.config/gh/hosts.yml`.
+- OAuth scopes from `gh auth login` are not as tightly constrained as a fine-grained PAT scoped to one repo.
+- If you use this path, run hardening checks and clean up disk auth if required:
+
+```bash
+scripts/gh_auth_harden.sh --status
+scripts/gh_auth_harden.sh --logout-disk-token
+scripts/gh_auth_harden.sh --verify
+```
+
+## Security notes
+
+- GitHub token setup is optional and only needed for contributor GitHub issue/PR automation.
+- Local Airflow/dbt pipeline usage does not require GitHub auth.
+- Keep secrets out of repo files, `.env`, scripts, and terminal history.
+- If a token is exposed, revoke it immediately and create a new one.
+- User-scope token persistence is opt-in and is a convenience tradeoff; session-only use is stricter on shared machines.
+
+## Testing vs auth responsibilities
+
+- Testing does not require `GH_TOKEN` / `GITHUB_TOKEN`.
+- Run local manual and automated tests in the devcontainer.
+- Use CI for branch and PR validation.
+- Token/auth setup is only for local `gh` API operations and local GitHub CLI-backed agent workflows.
+- Cloud-hosted agents use GitHub-side permissions and do not rely on local host token environment variables.

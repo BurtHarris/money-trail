@@ -73,58 +73,6 @@ The files under docs/agents are the source of truth for this repo's skill behavi
 
 Use token environment variables as the default auth path for `gh` in this repo.
 This enables local GitHub CLI-backed agent actions in this workspace.
-If you use cloud-hosted agents, they rely on GitHub-side repository permissions and do not consume your local `GH_TOKEN` directly.
 
-Security-first quick start:
-
-1. On your Windows host (PowerShell), run the setup helper from the repo root.
-
-	```powershell
-	.\scripts\setup-gh-token.ps1
-	```
-
-	What this does:
-	- Opens GitHub token pages so you can create/review a fine-grained token.
-	- Prompts for token paste with masked input.
-	- Sets `GH_TOKEN` for the current PowerShell session.
-	- Persists `GH_TOKEN` at User scope for future sessions.
-	- Sets `GITHUB_TOKEN` for compatibility.
-
-	Manual browser links (if needed):
-	- New fine-grained token: https://github.com/settings/personal-access-tokens/new
-	- Token list: https://github.com/settings/tokens
-
-	Recommended minimum repo permissions:
-	- Issues: Read and write
-	- Pull requests: Read and write
-	- Contents: Read
-
-	Quick host-side check:
-
-	```powershell
-	if ($env:GH_TOKEN) { 'set' } else { 'missing' }
-	```
-
-2. Reopen the devcontainer so the token is injected.
-3. Run `scripts/gh_auth_harden.sh --status` and `scripts/gh_auth_harden.sh --verify`.
-
-If `~/.config/gh/hosts.yml` contains `oauth_token`, remove disk-persisted auth with:
-
-`scripts/gh_auth_harden.sh --logout-disk-token`
-
-Why this is best for security:
-- It keeps auth out of repo files and relies on environment-variable injection.
-- It scopes token permissions to the minimum needed for issue/PR workflows.
-- It validates active auth state and flags disk-persisted oauth tokens for cleanup.
-
-Additional security notes:
-- Never commit tokens to files, `.env`, scripts, or terminal history.
-- User-scope token persistence is a convenience tradeoff; use session-only auth patterns on shared or high-sensitivity machines.
-- If a token is exposed, revoke it immediately and create a new one.
-
-## Testing vs auth responsibilities
-
-- Testing and validation do not require `GH_TOKEN`/`GITHUB_TOKEN`.
-- Run tests in the devcontainer and enforce branch/PR checks in CI.
-- Token setup is only required for local `gh` operations and local GitHub CLI-backed agent actions.
-- Cloud-hosted agents use GitHub-side permissions and are independent of local host token environment variables.
+Windows host + devcontainer guidance is centralized here:
+- [docs/windows-devcontainer-github-auth.md](windows-devcontainer-github-auth.md)
