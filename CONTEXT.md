@@ -28,6 +28,14 @@ _Avoid_: staging (reserved for dbt), landing zone
 A DuckDB table (`metadata._fec_download_state`) that records the full history of HEAD check results per file type and cycle — including timestamp, ETag, Last-Modified, and whether a change was detected. Used both for change detection (compare latest row against current HEAD) and for analyzing FEC update frequency per file type. Owned exclusively by Airflow.
 _Avoid_: change log, sync state
 
+**Daily Observation**:
+One recorded result of a scheduled HTTP HEAD check for a single File Type and Cycle on a given day, regardless of success or failure. Includes probe time and response metadata (when available) so stability and outage gaps are both measurable over time.
+_Avoid_: daily delta, daily change row
+
+**Observation Backfill**:
+The process of creating missed Daily Observations after downtime (for example, a sleeping laptop) by running pending probes on the next available run. Backfilled rows are still first-class observations and remain distinguishable by their probe time.
+_Avoid_: replay, synthetic fill
+
 **Change Detection**:
 An HTTP HEAD request to the FEC download URL compared against the stored Download State. Triggers a download and load only when the remote file has changed.
 _Avoid_: delta detection, incremental check

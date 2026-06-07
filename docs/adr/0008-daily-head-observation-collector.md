@@ -1,0 +1,3 @@
+# Daily HEAD Observation Collector for FEC Bulk URLs
+
+We run a dedicated telemetry DAG that performs daily HTTP HEAD checks across all configured cycle and file type pairs and stores every observation in DuckDB metadata, including successes and failures. This separates lightweight cadence measurement from ingest execution, supports local daytime scheduling with observation backfill after downtime, and provides decision-grade evidence for current versus historical ingest policy without requiring full file downloads.
