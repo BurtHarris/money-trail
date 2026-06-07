@@ -44,7 +44,8 @@
     }
   },
   "remoteEnv": {
-    "WORKDIR": "/workspaces/money-trail",
+    "EDITOR": "nano",
+    "VISUAL": "nano",
     "OPENLINEAGE_NAMESPACE": "money-trail-dev",
     "DBT_PROFILES_DIR": "/workspaces/money-trail/dbt",
     "COMPOSE_PROGRESS": "plain"
