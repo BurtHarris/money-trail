@@ -11,16 +11,17 @@ RUN set -eux; \
     rm -f /etc/apt/sources.list.d/yarn.list /etc/apt/sources.list.d/yarn*.list || true; \
     apt-get update; \
     apt-get install -y --no-install-recommends \
-        build-essential \
-        curl \
-        gh \
-        git \
-        jq \
-        libpq-dev \
-        nodejs \
-        npm \
-        procps \
-        sqlite3; \
+    build-essential \
+    curl \
+    gh \
+    git \
+    jq \
+    libpq-dev \
+    nodejs \
+    npm \
+    postgresql-client \
+    procps \
+    sqlite3; \
     rm -rf /var/lib/apt/lists/*
 
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
