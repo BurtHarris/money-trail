@@ -10,6 +10,7 @@ import duckdb
 import requests
 from airflow import DAG
 from airflow.operators.python import PythonOperator
+from include.pipeline_config import PIPELINE_CONFIG
 
 DATA_DIR = Path("/workspaces/money-trail/data")
 RAW_DIR = DATA_DIR / "raw"
@@ -95,7 +96,14 @@ with DAG(
     schedule=None,
     catchup=False,
     default_args={"owner": "money-trail"},
-    tags=["example", "http", "duckdb", "sqlite", "openlineage"],
+    tags=[
+        "example",
+        "http",
+        "duckdb",
+        "sqlite",
+        "openlineage",
+        f"cycles-{len(PIPELINE_CONFIG.cycles)}",
+    ],
 ) as dag:
     fetch = PythonOperator(
         task_id="fetch_http_source",
