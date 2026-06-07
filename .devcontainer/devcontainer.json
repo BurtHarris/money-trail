@@ -11,8 +11,8 @@
     "AIRFLOW_HOME": "/workspaces/money-trail/.airflow",
     "AIRFLOW__CORE__LOAD_EXAMPLES": "False",
     "AIRFLOW__CORE__EXECUTOR": "LocalExecutor",
-    "AIRFLOW__CORE__SQL_ALCHEMY_CONN": "postgresql://airflow:airflow@postgres:5432/airflow",
-    "AIRFLOW__DATABASE__SQL_ALCHEMY_CONN": "postgresql://airflow:airflow@postgres:5432/airflow",
+    "AIRFLOW__CORE__SQL_ALCHEMY_CONN": "postgresql://airflow:[REDACTED]@postgres:5432/airflow",
+    "AIRFLOW__DATABASE__SQL_ALCHEMY_CONN": "postgresql://airflow:[REDACTED]@postgres:5432/airflow",
     "POSTGRES_HOST": "postgres",
     "POSTGRES_PORT": "5432",
     "POSTGRES_DB": "airflow",
@@ -38,29 +38,12 @@
       "label": "PostgreSQL"
     }
   },
-  "containerEnv": {
-    "AIRFLOW_HOME": "/workspaces/money-trail/.airflow",
-    "AIRFLOW__CORE__LOAD_EXAMPLES": "False",
-    "AIRFLOW__CORE__EXECUTOR": "SequentialExecutor",
-    "AIRFLOW__DATABASE__SQL_ALCHEMY_CONN": "postgresql://airflow:airflow@postgres:5432/airflow",
-    "POSTGRES_HOST": "postgres",
-    "POSTGRES_PORT": "5432",
-    "POSTGRES_DB": "airflow",
-    "POSTGRES_USER": "airflow",
-    "POSTGRES_PASSWORD": "airflow",
-    "AIRFLOW__WEBSERVER__EXPOSE_CONFIG": "True",
-    "OPENLINEAGE_URL": "http://localhost:5000",
-    "OPENLINEAGE_NAMESPACE": "money-trail-dev",
-    "DBT_PROFILES_DIR": "/workspaces/money-trail/dbt"
-  },
   "remoteEnv": {
     "WORKDIR": "/workspaces/money-trail",
     "OPENLINEAGE_NAMESPACE": "money-trail-dev",
     "DBT_PROFILES_DIR": "/workspaces/money-trail/dbt",
-    "COMPOSE_PROGRESS": "plain",
-    "AIRFLOW__CORE__EXECUTOR": "LocalExecutor"
+    "COMPOSE_PROGRESS": "plain"
   },
-
   "customizations": {
     "vscode": {
       "settings": {
@@ -95,8 +78,8 @@
       ]
     }
   },
-  "postCreateCommand": "bash scripts/init_fernet_key.sh && bash scripts/bootstrap.sh",
-  "postStartCommand": "bash scripts/start_airflow.sh",
+  "postCreateCommand": "bash scripts/init_fernet_key.sh",
+
   "mounts": [
     "source=money-trail-pip-cache,target=/home/vscode/.cache/pip,type=volume",
     "source=money-trail-build-cache,target=/home/vscode/.cache/docker,type=volume"
