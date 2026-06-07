@@ -49,4 +49,3 @@ else
 fi
 
 echo "✓ Fernet key generated and saved to .env"
-export "AIRFLOW__CORE__FERNET_KEY=$FERNET_KEY"

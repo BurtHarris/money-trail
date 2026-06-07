@@ -21,14 +21,20 @@ winget update docker.desktop vscode
 
 2. Open the repository in VS Code.
 3. Reopen in Container.
-4. Wait for the post-create bootstrap to finish (this runs airflow db migrate against PostgreSQL).
-5. Open Airflow at http://localhost:8080
+4. Wait for post-create setup to finish.
+5. Start Airflow services from the devcontainer terminal:
+
+```bash
+bash scripts/start_airflow.sh
+```
+
+6. Open Airflow at http://localhost:8080
    - username: devadmin
    - password: devadmin
-6. PostgreSQL is exposed on your host at localhost:5433.
+7. PostgreSQL is exposed on your host at localhost:5432.
    - Inside the devcontainer network, services still use postgres:5432.
-7. Trigger the DAG example_http_to_warehouse.
-8. Run dbt commands from dbt/, for example:
+8. Trigger the DAG example_http_to_warehouse.
+9. Run dbt commands from dbt/, for example:
    - dbt debug
    - dbt run
 
@@ -41,6 +47,9 @@ Optional contributor setup (only if you will use Copilot agent GitHub issue/PR a
 ```powershell
 .\scripts\setup-gh-token.ps1
 ```
+   - Default probes for existing `gh auth` credentials and reuses them when available.
+   - If no reusable `gh` token is found, it falls back to masked manual token paste.
+   - Script prints token creation links and minimum permissions when manual fallback is used.
    - Default is session-only and does not persist token env vars.
 3. If you need token injection after VS Code/devcontainer restart, run:
 

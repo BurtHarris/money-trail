@@ -1,8 +1,4 @@
 Param(
-    # Open GitHub token management pages to guide least-privilege token creation.
-    [switch]$OpenBrowser = $true,
-    # Keep compatibility with tools that expect GITHUB_TOKEN instead of GH_TOKEN.
-    [switch]$SetGithubTokenAlias = $true,
     # Persist GH_TOKEN/GITHUB_TOKEN at User scope for future terminals (opt-in).
     [switch]$PersistUserScope = $false,
     # Clear persisted User-scope GH_TOKEN/GITHUB_TOKEN and exit.
@@ -31,26 +27,46 @@ if ($ClearUserScope) {
     return
 }
 
-if ($OpenBrowser) {
-    Start-Process "https://github.com/settings/personal-access-tokens/new"
-    Start-Process "https://github.com/settings/tokens"
-    Write-Host "Opened GitHub token pages in your browser." -ForegroundColor Green
-}
-
-Write-Host "Create a fine-grained token with least privilege for this repo." -ForegroundColor Yellow
-Write-Host "Recommended minimum: Issues (read/write), Pull requests (read/write), Contents (read)." -ForegroundColor Yellow
 Write-Host "Security model: set token on host so container uses env vars; avoid gh auth login in-container." -ForegroundColor Yellow
+$token = $null
+$tokenSource = $null
 
-# Prompt is masked so the token is not displayed while typing/pasting.
-$secure = Read-Host "Paste the new token" -AsSecureString
-# Convert SecureString to plain text only at the last moment so it can be assigned
-# to process/user environment variables. The unmanaged buffer is zeroed in finally.
-$bstr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secure)
-try {
-    $token = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($bstr)
+if (Get-Command gh -ErrorAction SilentlyContinue) {
+    # Adaptive default: reuse existing host gh auth if available.
+    $ghToken = (& gh auth token 2>$null)
+    if ($ghToken) {
+        $token = $ghToken.Trim()
+    }
 }
-finally {
-    [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($bstr)
+
+if (-not [string]::IsNullOrWhiteSpace($token)) {
+    $tokenSource = 'gh-auth'
+    Write-Host "Using token from existing gh auth session." -ForegroundColor Green
+    $statusText = (& gh auth status 2>&1 | Out-String)
+    $scopeLine = ($statusText -split "`r?`n" | Where-Object { $_ -match 'Token scopes:' } | Select-Object -First 1)
+    if ($scopeLine) {
+        Write-Host $scopeLine.Trim() -ForegroundColor Yellow
+        Write-Host "Note: gh auth scopes may be broader than a repo-scoped fine-grained token." -ForegroundColor Yellow
+    }
+} else {
+    $tokenSource = 'manual'
+    Write-Host "No reusable gh auth token found. Falling back to manual token entry." -ForegroundColor Yellow
+    Write-Host "Create a fine-grained token with least privilege for this repo:" -ForegroundColor Yellow
+    Write-Host "- New token page: https://github.com/settings/personal-access-tokens/new" -ForegroundColor Yellow
+    Write-Host "- Token list: https://github.com/settings/tokens" -ForegroundColor Yellow
+    Write-Host "- Minimum permissions: Issues (read/write), Pull requests (read/write), Contents (read)." -ForegroundColor Yellow
+
+    # Prompt is masked so the token is not displayed while typing/pasting.
+    $secure = Read-Host "Paste the new token" -AsSecureString
+    # Convert SecureString to plain text only at the last moment so it can be assigned
+    # to process/user environment variables. The unmanaged buffer is zeroed in finally.
+    $bstr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secure)
+    try {
+        $token = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($bstr)
+    }
+    finally {
+        [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($bstr)
+    }
 }
 
 if ([string]::IsNullOrWhiteSpace($token)) {
@@ -59,23 +75,19 @@ if ([string]::IsNullOrWhiteSpace($token)) {
 
 # Light validation to reduce copy/paste mistakes (fine-grained tokens usually start
 # with github_pat_). Do not block unknown formats to preserve compatibility.
-if ($token -notmatch '^(github_pat_|ghp_)') {
+if ($tokenSource -eq 'manual' -and $token -notmatch '^(github_pat_|ghp_)') {
     Write-Host "Warning: token prefix is unusual. Verify you pasted the correct token." -ForegroundColor Yellow
 }
 
 # Current PowerShell process (immediate use)
 $env:GH_TOKEN = $token
-if ($SetGithubTokenAlias) {
-    $env:GITHUB_TOKEN = $token
-}
+$env:GITHUB_TOKEN = $token
 
 # Optional persistence for future terminals at User scope (avoids wider Machine-level exposure)
 # Default is session-only to avoid changing long-lived personal gh CLI behavior.
 if ($PersistUserScope) {
     [Environment]::SetEnvironmentVariable('GH_TOKEN', $token, 'User')
-    if ($SetGithubTokenAlias) {
-        [Environment]::SetEnvironmentVariable('GITHUB_TOKEN', $token, 'User')
-    }
+    [Environment]::SetEnvironmentVariable('GITHUB_TOKEN', $token, 'User')
 }
 
 # Best-effort cleanup of local variables after export to env vars.
@@ -87,13 +99,12 @@ if ($PersistUserScope) {
 } else {
     Write-Host "GH_TOKEN set for current session only (not persisted)." -ForegroundColor Green
 }
-if ($SetGithubTokenAlias) {
-    Write-Host "GITHUB_TOKEN also set for compatibility." -ForegroundColor Green
-}
+Write-Host "GITHUB_TOKEN also set for compatibility." -ForegroundColor Green
 if (-not $PersistUserScope) {
     Write-Host "Default mode preserves your long-lived personal gh auth style." -ForegroundColor Green
 }
 Write-Host "This script does not modify gh auth login credentials or account selection." -ForegroundColor Green
+Write-Host "GitHub does not provide a public CLI/API to auto-create fine-grained PATs." -ForegroundColor Yellow
 
 Write-Host "Next steps:" -ForegroundColor Cyan
 if ($PersistUserScope) {
