@@ -20,17 +20,28 @@ winget update docker.desktop vscode
 ```
 
 2. Open the repository in VS Code.
-3. Reopen in Container.
-4. Wait for the post-create bootstrap to finish (this runs airflow db migrate against PostgreSQL).
-5. Open Airflow at http://localhost:8080
+3. Optional (contributors using Copilot agents with GitHub issue/PR actions): run this on the Windows host before opening the container:
+
+```powershell
+.\scripts\setup-gh-token.ps1
+```
+4. Reopen in Container.
+5. Wait for the post-create bootstrap to finish (this runs airflow db migrate against PostgreSQL).
+6. Open Airflow at http://localhost:8080
    - username: devadmin
    - password: devadmin
-6. PostgreSQL is exposed on your host at localhost:5433.
+7. PostgreSQL is exposed on your host at localhost:5433.
    - Inside the devcontainer network, services still use postgres:5432.
-7. Trigger the DAG example_http_to_warehouse.
-8. Run dbt commands from dbt/, for example:
+8. Trigger the DAG example_http_to_warehouse.
+9. Run dbt commands from dbt/, for example:
    - dbt debug
    - dbt run
+
+## Security notes
+
+- GitHub token setup is a contributor step for agent-driven GitHub operations only (issue creation, labeling, comments, PR actions).
+- GitHub token setup is not required to run the local Airflow/dbt pipeline.
+- Use `GH_TOKEN`/`GITHUB_TOKEN` via host environment variables and avoid long-lived disk-persisted tokens in `~/.config/gh/hosts.yml`.
 
 ## More docs
 
