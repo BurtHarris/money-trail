@@ -1,14 +1,27 @@
 {
   "name": "money-trail",
-  "build": {
-    "dockerfile": "../Dockerfile",
-    "context": ".."
-  },
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "devcontainer",
+  "runServices": ["postgres"],
+  "workspaceFolder": "/workspaces/money-trail",
   "remoteUser": "vscode",
   "init": true,
-  "overrideCommand": true,
-  "command": "/bin/sh",
-  "args": ["-c", "while sleep 1000; do :; done"],
+  "containerEnv": {
+    "COMPOSE_PROGRESS": "plain",
+    "AIRFLOW_HOME": "/workspaces/money-trail/.airflow",
+    "AIRFLOW__CORE__LOAD_EXAMPLES": "False",
+    "AIRFLOW__CORE__EXECUTOR": "SequentialExecutor",
+    "AIRFLOW__DATABASE__SQL_ALCHEMY_CONN": "postgresql://airflow:[REDACTED]@postgres:5432/airflow",
+    "POSTGRES_HOST": "postgres",
+    "POSTGRES_PORT": "5432",
+    "POSTGRES_DB": "airflow",
+    "POSTGRES_USER": "airflow",
+    "POSTGRES_PASSWORD": "airflow",
+    "AIRFLOW__WEBSERVER__EXPOSE_CONFIG": "True",
+    "OPENLINEAGE_URL": "http://localhost:5000",
+    "OPENLINEAGE_NAMESPACE": "money-trail-dev",
+    "DBT_PROFILES_DIR": "/workspaces/money-trail/dbt"
+  },
   "features": {
     "ghcr.io/devcontainers/features/github-cli:1": {}
   },
@@ -25,7 +38,12 @@
     "AIRFLOW_HOME": "/workspaces/money-trail/.airflow",
     "AIRFLOW__CORE__LOAD_EXAMPLES": "False",
     "AIRFLOW__CORE__EXECUTOR": "SequentialExecutor",
-    "AIRFLOW__DATABASE__SQL_ALCHEMY_CONN": "postgresql://airflow:[REDACTED]@localhost:5432/airflow",
+    "AIRFLOW__DATABASE__SQL_ALCHEMY_CONN": "postgresql://airflow:airflow@postgres:5432/airflow",
+    "POSTGRES_HOST": "postgres",
+    "POSTGRES_PORT": "5432",
+    "POSTGRES_DB": "airflow",
+    "POSTGRES_USER": "airflow",
+    "POSTGRES_PASSWORD": "airflow",
     "AIRFLOW__WEBSERVER__EXPOSE_CONFIG": "True",
     "OPENLINEAGE_URL": "http://localhost:5000",
     "OPENLINEAGE_NAMESPACE": "money-trail-dev",
@@ -34,27 +52,10 @@
   "remoteEnv": {
     "WORKDIR": "/workspaces/money-trail",
     "OPENLINEAGE_NAMESPACE": "money-trail-dev",
-    "DBT_PROFILES_DIR": "/workspaces/money-trail/dbt"
+    "DBT_PROFILES_DIR": "/workspaces/money-trail/dbt",
+    "COMPOSE_PROGRESS": "plain"
   },
-  "services": {
-    "postgres": {
-      "image": "postgres:16.3-alpine",
-      "environment": {
-        "POSTGRES_DB": "airflow",
-        "POSTGRES_USER": "airflow",
-        "POSTGRES_PASSWORD": "airflow"
-      },
-      "ports": ["5432:5432"],
-      "volumes": ["postgres-data:/var/lib/postgresql/data"],
-      "healthCheck": {
-        "test": ["CMD-SHELL", "pg_isready -U airflow -d airflow"],
-        "interval": 2,
-        "timeout": 5,
-        "retries": 5,
-        "startPeriod": 5
-      }
-    }
-  },
+  "initializeCommand": "",
   "customizations": {
     "vscode": {
       "settings": {
@@ -89,14 +90,11 @@
       ]
     }
   },
-  "postCreateCommand": "bash scripts/init_fernet_key.sh && bash scripts/bootstrap.sh 2>&1 | tail -50 || echo 'Bootstrap completed with warnings'",
-  "postStartCommand": "bash scripts/start_airflow.sh 2>&1 | grep -E '(ERROR|WARNING|READY|Listening)' || echo 'Airflow services started'",
+  "postCreateCommand": "bash scripts/init_fernet_key.sh && bash scripts/bootstrap.sh",
+  "postStartCommand": "bash scripts/start_airflow.sh",
+  "onCreateCommand": "bash scripts/start_airflow.sh",
   "mounts": [
     "source=money-trail-pip-cache,target=/home/vscode/.cache/pip,type=volume",
     "source=money-trail-build-cache,target=/home/vscode/.cache/docker,type=volume"
-  ],
-  "volumes": {
-    "postgres-data": {},
-    "money-trail-build-cache": {}
-  }
+  ]
 }
