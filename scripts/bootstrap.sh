@@ -7,13 +7,32 @@ mkdir -p data/raw
 mkdir -p data/duckdb
 mkdir -p logs
 
+# Ensure uv can cache packages when VS Code queries environments.
+if [[ ! -d "${HOME}/.cache" ]]; then
+  mkdir -p "${HOME}/.cache"
+fi
+if [[ ! -w "${HOME}/.cache" ]]; then
+  if command -v sudo >/dev/null 2>&1; then
+    sudo chown -R "$(id -u)":"$(id -g)" "${HOME}/.cache"
+  fi
+fi
+mkdir -p "${HOME}/.cache/uv"
+if [[ ! -w "${HOME}/.cache" || ! -w "${HOME}/.cache/uv" ]]; then
+  echo "ERROR: ${HOME}/.cache is not writable; cannot initialize uv cache." >&2
+  exit 1
+fi
+
 export AIRFLOW_HOME="${AIRFLOW_HOME:-/workspaces/money-trail/.airflow}"
 export AIRFLOW__CORE__DAGS_FOLDER="${AIRFLOW__CORE__DAGS_FOLDER:-/workspaces/money-trail/dags}"
-export AIRFLOW__DATABASE__SQL_ALCHEMY_CONN="${AIRFLOW__DATABASE__SQL_ALCHEMY_CONN:-sqlite:////workspaces/money-trail/.airflow/airflow.db}"
-
-if [[ ! -f "$AIRFLOW_HOME/airflow.db" ]]; then
-  airflow db migrate
+if [[ -z "${AIRFLOW__CORE__EXECUTOR:-}" || "${AIRFLOW__CORE__EXECUTOR}" == "SequentialExecutor" ]]; then
+  export AIRFLOW__CORE__EXECUTOR="LocalExecutor"
 fi
+
+if [[ -z "${AIRFLOW__DATABASE__SQL_ALCHEMY_CONN:-}" || "${AIRFLOW__DATABASE__SQL_ALCHEMY_CONN}" == sqlite:* ]]; then
+  export AIRFLOW__DATABASE__SQL_ALCHEMY_CONN="postgresql+psycopg2://postgres:postgres@host.docker.internal:5432/airflow"
+fi
+
+airflow db migrate
 
 if ! airflow users list | grep -q "devadmin"; then
   airflow users create \
