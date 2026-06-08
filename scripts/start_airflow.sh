@@ -13,14 +13,25 @@ if [[ -z "${AIRFLOW__DATABASE__SQL_ALCHEMY_CONN:-}" || "${AIRFLOW__DATABASE__SQL
   export AIRFLOW__DATABASE__SQL_ALCHEMY_CONN="postgresql+psycopg2://postgres:postgres@host.docker.internal:5432/airflow"
 fi
 
-if ! pgrep -f "airflow scheduler" >/dev/null 2>&1; then
-  airflow scheduler > logs/airflow-scheduler.log 2>&1 &
+start_detached() {
+  local log_file="$1"
+  shift
+  # Use nohup and stdin redirection so services survive launcher exit in lifecycle shells.
+  nohup "$@" >> "$log_file" 2>&1 < /dev/null &
+}
+
+scheduler_is_healthy() {
+  airflow jobs check --job-type SchedulerJob >/dev/null 2>&1
+}
+
+if ! scheduler_is_healthy; then
+  start_detached logs/airflow-scheduler.log airflow scheduler
 fi
 
 # Avoid transient devcontainer port-forward failures by waiting for 8080 to accept connections.
 if ! curl -sSf http://127.0.0.1:8080/ >/dev/null 2>&1; then
   if ! pgrep -f "airflow webserver" >/dev/null 2>&1; then
-    airflow webserver --port 8080 > logs/airflow-webserver.log 2>&1 &
+    start_detached logs/airflow-webserver.log airflow webserver --port 8080
   fi
 
   for _ in $(seq 1 60); do
@@ -30,7 +41,7 @@ if ! curl -sSf http://127.0.0.1:8080/ >/dev/null 2>&1; then
 
     # Retry launch if the previous webserver process died during startup.
     if ! pgrep -f "airflow webserver" >/dev/null 2>&1; then
-      airflow webserver --port 8080 > logs/airflow-webserver.log 2>&1 &
+      start_detached logs/airflow-webserver.log airflow webserver --port 8080
     fi
 
     sleep 1
