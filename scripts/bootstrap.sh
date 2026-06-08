@@ -8,6 +8,7 @@ mkdir -p data/duckdb
 mkdir -p logs
 
 export AIRFLOW_HOME="${AIRFLOW_HOME:-/workspaces/money-trail/.airflow}"
+export AIRFLOW__CORE__DAGS_FOLDER="${AIRFLOW__CORE__DAGS_FOLDER:-/workspaces/money-trail/dags}"
 export AIRFLOW__DATABASE__SQL_ALCHEMY_CONN="${AIRFLOW__DATABASE__SQL_ALCHEMY_CONN:-sqlite:////workspaces/money-trail/.airflow/airflow.db}"
 
 if [[ ! -f "$AIRFLOW_HOME/airflow.db" ]]; then
