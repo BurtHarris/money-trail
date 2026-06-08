@@ -48,8 +48,8 @@
       ]
     }
   },
-  "postCreateCommand": "bash scripts/bootstrap.sh || true",
-  "postStartCommand": "bash scripts/start_airflow.sh || true",
+  "postCreateCommand": "bash scripts/bootstrap.sh",
+  "postStartCommand": "bash scripts/start_airflow.sh",
   "mounts": [
     "source=money-trail-pip-cache,target=/home/vscode/.cache/pip,type=volume"
   ],
