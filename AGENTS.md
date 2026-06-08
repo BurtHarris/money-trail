@@ -1,13 +1,86 @@
-## Agent skills
+# AGENTS.md
 
-### Issue tracker
+Instructions for AI coding agents working in this repository.
 
-Issues for this repo are tracked in GitHub Issues for this repository. See docs/agents/issue-tracker.md.
+## Scope
 
-### Triage labels
+- Keep changes minimal and focused.
+- Prefer fixing root causes over adding retries or broad fallbacks.
+- For project context and expected behavior, start with [README.md](README.md).
 
-This repo uses the default five canonical triage labels with no overrides. See docs/agents/triage-labels.md.
+## First Commands To Run
 
-### Domain docs
+From the workspace root:
 
-This repo uses a single-context domain-docs layout. See docs/agents/domain.md.
+```bash
+pwd
+ls -la .devcontainer scripts
+cat .devcontainer/devcontainer.json
+cat .devcontainer/Dockerfile
+bash scripts/bootstrap.sh
+bash scripts/start_airflow.sh
+```
+
+If Python package or CLI availability is in question:
+
+```bash
+python --version
+pip --version
+airflow version
+dbt --version
+```
+
+## Devcontainer Failure Triage (Priority)
+
+When the devcontainer setup is failing, check in this order:
+
+1. Build-time failures:
+   - Inspect [.devcontainer/Dockerfile](.devcontainer/Dockerfile) and dependency install steps.
+   - Confirm `requirements.txt` installs cleanly with `uv pip install --system -r /tmp/requirements.txt`.
+
+2. Feature/runtime failures:
+   - Inspect [.devcontainer/devcontainer.json](.devcontainer/devcontainer.json) for feature and lifecycle commands.
+   - `docker-outside-of-docker` can fail on restricted Docker hosts; treat it as a likely culprit if build logs fail during feature install.
+
+3. Post-create/post-start failures:
+   - This repo uses `|| true` for both lifecycle commands in [.devcontainer/devcontainer.json](.devcontainer/devcontainer.json), so failures can be silent.
+   - Re-run manually in container shell to surface real errors:
+
+```bash
+bash scripts/bootstrap.sh
+bash scripts/start_airflow.sh
+```
+
+4. Airflow startup issues:
+   - Check [scripts/bootstrap.sh](scripts/bootstrap.sh) and [scripts/start_airflow.sh](scripts/start_airflow.sh).
+   - Verify writable paths: `.airflow/`, `logs/`, `data/raw/`, `data/duckdb/`.
+   - Check generated logs in [logs/](logs/).
+
+## Repository Conventions
+
+- Orchestration code lives in [dags/](dags/).
+- dbt project lives in [dbt/](dbt/) and uses local profile files.
+- Local artifacts are expected in [data/](data/), [logs/](logs/), and [.airflow/](.airflow/).
+- Avoid moving these directories unless you also update scripts and environment variables.
+
+## Safe Change Pattern For Devcontainer Fixes
+
+- Prefer small edits in [.devcontainer/devcontainer.json](.devcontainer/devcontainer.json), [.devcontainer/Dockerfile](.devcontainer/Dockerfile), and [scripts/](scripts/).
+- If changing lifecycle commands, keep them idempotent.
+- If removing `|| true`, ensure scripts provide clear errors and do not break on harmless repeats.
+- Update [README.md](README.md) when behavior or setup steps change.
+
+## Validation Before Finishing
+
+Run:
+
+```bash
+bash scripts/bootstrap.sh
+bash scripts/start_airflow.sh
+```
+
+Then verify:
+
+- Airflow webserver process is running.
+- No fatal tracebacks in `logs/airflow-webserver.log` or `logs/airflow-scheduler.log`.
+- `dbt/profiles.yml` exists (copied from `dbt/profiles.yml.example` if needed).
