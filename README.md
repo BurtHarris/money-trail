@@ -1,11 +1,11 @@
 # money-trail
 
-Lightweight devcontainer-first workspace for FEC-oriented ELT development with Apache Airflow, OpenLineage, DuckDB, SQLite, and dbt.
+Lightweight devcontainer-first workspace for FEC-oriented ELT development with Apache Airflow, OpenLineage, DuckDB, PostgreSQL metadata, and dbt.
 
 ## What is included
 
 - VS Code devcontainer for Python-based data engineering work
-- Apache Airflow 2.9 with a local SQLite-backed metadata database
+- Apache Airflow 2.9 with a local PostgreSQL-backed metadata database
 - Example DAG that reads from an HTTP source and writes to DuckDB and SQLite
 - dbt starter project targeting DuckDB
 - OpenLineage Python and Airflow provider dependencies preinstalled
