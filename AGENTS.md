@@ -84,3 +84,17 @@ Then verify:
 - Airflow webserver process is running.
 - No fatal tracebacks in `logs/airflow-webserver.log` or `logs/airflow-scheduler.log`.
 - `dbt/profiles.yml` exists (copied from `dbt/profiles.yml.example` if needed).
+
+## Agent skills
+
+### Issue tracker
+
+Issues are tracked in this repository's GitHub Issues (uses the `gh` CLI). See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Uses the label vocabulary: needs-triage, needs-info, ready-for-agent, ready-for-human, wontfix. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context — one CONTEXT.md and docs/adr/ at the repo root. See `docs/agents/domain.md`.
