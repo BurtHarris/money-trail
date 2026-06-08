@@ -11,3 +11,4 @@ psycopg2-binary==2.9.9
 pyarrow==16.1.0
 requests==2.32.3
 sqlalchemy==1.4.54
+psycopg2-binary==2.9.9
