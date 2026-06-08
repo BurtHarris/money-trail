@@ -49,5 +49,14 @@
   "postStartCommand": "bash scripts/start_airflow.sh || true",
   "mounts": [
     "source=money-trail-pip-cache,target=/home/vscode/.cache/pip,type=volume"
-  ]
+  ],
+  "runArgs": [
+    "--no-healthcheck",
+    "--init"
+  ],
+  "overrideCommand": true,
+  "updateRemoteUserUID": false,
+  "remoteEnv": {
+    "DISPLAY": ""
+  }
 }
