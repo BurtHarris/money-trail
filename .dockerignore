@@ -3,6 +3,9 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
 .Python
 build/
 develop-eggs/
@@ -23,6 +26,9 @@ wheels/
 # Airflow
 airflow.db
 airflow_webserver.log
+airflow.cfg
+logs/
+plug_in/
 DAGS_FOLDER/
 
 # DBT
@@ -45,11 +51,20 @@ dbt/dbt_packages/
 # Environment
 .env
 .env.local
+.env.*.local
 
 # OS
 .DS_Store
 Thumbs.db
+.AppleDouble/
+.LSOverride/
+desktop.ini
 
 # Development
 .devcontainer/
 .local/
+.git/
+.gitignore
+node_modules/
+*.md
+!README.md

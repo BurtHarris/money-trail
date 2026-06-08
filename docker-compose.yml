@@ -26,10 +26,13 @@ services:
       watch:
         - path: ./dags
           action: sync
+          target: /app/dags
         - path: ./dbt
           action: sync
+          target: /app/dbt
         - path: ./scripts
           action: sync
+          target: /app/scripts
     depends_on:
       - init-airflow
     healthcheck:
@@ -71,8 +74,10 @@ services:
       watch:
         - path: ./dags
           action: sync
+          target: /app/dags
         - path: ./scripts
           action: sync
+          target: /app/scripts
     command: airflow scheduler
     depends_on:
       - init-airflow
