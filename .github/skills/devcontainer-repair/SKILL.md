@@ -34,7 +34,7 @@ In this repository, lifecycle commands in [.devcontainer/devcontainer.json](.dev
 bash scripts/bootstrap.sh
 bash scripts/start_airflow.sh
 python --version
-pip --version
+uv --version
 airflow version
 dbt --version
 ```

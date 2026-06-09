@@ -57,7 +57,7 @@ Run:
 
 ```bash
 python --version
-pip --version
+uv --version
 airflow version
 dbt --version
 ```

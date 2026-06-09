@@ -1,3 +1,4 @@
 {
-  "dev.containers.mountWaylandSocket": false
+  "dev.containers.mountWaylandSocket": false,
+  "python.defaultInterpreterPath": "${workspaceFolder}\\.venv\\Scripts\\python.exe"
 }

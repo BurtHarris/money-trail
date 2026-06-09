@@ -1,7 +1,13 @@
-# Build stage: resolve dependencies with uv
-FROM python:3.12-slim AS builder
+# Use an explicit Debian release variant for better patch cadence and predictability.
+ARG PYTHON_BASE_IMAGE=python:3.14-slim-bookworm
 
-RUN pip install --no-cache-dir uv
+# Build stage: resolve dependencies with uv
+FROM ${PYTHON_BASE_IMAGE} AS builder
+
+RUN apt-get update \
+	&& apt-get install -y --no-install-recommends curl \
+	&& rm -rf /var/lib/apt/lists/* \
+	&& curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/usr/local/bin sh
 
 WORKDIR /app
 COPY requirements.txt .
@@ -10,12 +16,13 @@ COPY requirements.txt .
 RUN uv pip install --system -r requirements.txt
 
 # Runtime stage: minimal image with only what's needed
-FROM python:3.12-slim
+FROM ${PYTHON_BASE_IMAGE}
 
 WORKDIR /app
 
-# Copy installed packages from builder
-COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
+# Copy installed packages from builder.
+# Use a wildcard so this stays valid when only one Python major.minor is present.
+COPY --from=builder /usr/local/lib/python*/site-packages /usr/local/lib/python*/site-packages
 COPY --from=builder /usr/local/bin /usr/local/bin
 
 # Copy application code

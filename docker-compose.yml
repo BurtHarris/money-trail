@@ -1,27 +1,62 @@
 name: money-trail
 
+x-airflow-env: &airflow-env
+  AIRFLOW_HOME: /app
+  AIRFLOW__CORE__EXECUTOR: LocalExecutor
+  AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
+  AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+
+x-airflow-volumes: &airflow-volumes
+  - ./dags:/app/dags
+  - ./dbt:/app/dbt
+  - ./data:/app/data
+  - ./logs:/app/logs
+  - ./scripts:/app/scripts
+
 services:
+  postgres:
+    image: postgres:16
+    container_name: money-trail-postgres
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "airflow"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  init-airflow:
+    build: .
+    container_name: money-trail-init
+    environment:
+      <<: *airflow-env
+    volumes: *airflow-volumes
+    command: >
+      bash -c "
+        airflow db migrate &&
+        airflow users create --username devadmin --password devadmin --firstname Dev --lastname Admin --role Admin --email admin@localhost || true
+      "
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   airflow:
     build: .
     container_name: money-trail-airflow
     ports:
       - "8080:8080"
     environment:
-      AIRFLOW_HOME: /app
-      AIRFLOW__CORE__EXECUTOR: LocalExecutor
-      AIRFLOW__CORE__SQL_ALCHEMY_CONN: sqlite:////app/data/airflow.db
-      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      <<: *airflow-env
       AIRFLOW_ADMIN_USERNAME: devadmin
       AIRFLOW_ADMIN_PASSWORD: devadmin
       AIRFLOW_ADMIN_EMAIL: admin@localhost
       AIRFLOW_ADMIN_FIRSTNAME: Dev
       AIRFLOW_ADMIN_LASTNAME: Admin
-    volumes:
-      - ./dags:/app/dags
-      - ./dbt:/app/dbt
-      - ./data:/app/data
-      - ./logs:/app/logs
-      - ./scripts:/app/scripts
+    volumes: *airflow-volumes
     develop:
       watch:
         - path: ./dags
@@ -34,7 +69,10 @@ services:
           action: sync
           target: /app/scripts
     depends_on:
-      - init-airflow
+      postgres:
+        condition: service_healthy
+      init-airflow:
+        condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 30s
@@ -42,34 +80,12 @@ services:
       retries: 3
       start_period: 60s
 
-  init-airflow:
-    build: .
-    container_name: money-trail-init
-    environment:
-      AIRFLOW_HOME: /app
-      AIRFLOW__CORE__SQL_ALCHEMY_CONN: sqlite:////app/data/airflow.db
-    volumes:
-      - ./data:/app/data
-    command: >
-      bash -c "
-        airflow db migrate &&
-        airflow users create --username devadmin --password devadmin --firstname Dev --lastname Admin --role Admin --email admin@localhost || true
-      "
-
   scheduler:
     build: .
     container_name: money-trail-scheduler
     environment:
-      AIRFLOW_HOME: /app
-      AIRFLOW__CORE__EXECUTOR: LocalExecutor
-      AIRFLOW__CORE__SQL_ALCHEMY_CONN: sqlite:////app/data/airflow.db
-      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
-    volumes:
-      - ./dags:/app/dags
-      - ./dbt:/app/dbt
-      - ./data:/app/data
-      - ./logs:/app/logs
-      - ./scripts:/app/scripts
+      <<: *airflow-env
+    volumes: *airflow-volumes
     develop:
       watch:
         - path: ./dags
@@ -80,4 +96,10 @@ services:
           target: /app/scripts
     command: airflow scheduler
     depends_on:
-      - init-airflow
+      postgres:
+        condition: service_healthy
+      init-airflow:
+        condition: service_completed_successfully
+
+volumes:
+  postgres-data:

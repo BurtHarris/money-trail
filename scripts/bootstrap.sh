@@ -27,8 +27,13 @@ if [[ -z "${AIRFLOW__CORE__EXECUTOR:-}" || "${AIRFLOW__CORE__EXECUTOR}" == "Sequ
   export AIRFLOW__CORE__EXECUTOR="LocalExecutor"
 fi
 
+if ! command -v airflow >/dev/null 2>&1; then
+  echo "ERROR: airflow CLI not found in PATH. Ensure dependencies are installed and run this inside the devcontainer." >&2
+  exit 1
+fi
+
 if [[ -z "${AIRFLOW__DATABASE__SQL_ALCHEMY_CONN:-}" || "${AIRFLOW__DATABASE__SQL_ALCHEMY_CONN}" == sqlite:* ]]; then
-  export AIRFLOW__DATABASE__SQL_ALCHEMY_CONN="postgresql+psycopg2://postgres:postgres@host.docker.internal:5432/airflow"
+  export AIRFLOW__DATABASE__SQL_ALCHEMY_CONN="postgresql+psycopg2://airflow:airflow@postgres:5432/airflow"
 fi
 
 airflow db migrate

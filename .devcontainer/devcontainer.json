@@ -1,9 +1,8 @@
 {
   "name": "money-trail",
-  "build": {
-    "dockerfile": "Dockerfile",
-    "context": ".."
-  },
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "airflow-web",
+  "workspaceFolder": "/workspaces/money-trail",
   "remoteUser": "vscode",
   "features": {
     "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
@@ -21,7 +20,7 @@
     "AIRFLOW__CORE__DAGS_FOLDER": "/workspaces/money-trail/dags",
     "AIRFLOW__CORE__LOAD_EXAMPLES": "False",
     "AIRFLOW__CORE__EXECUTOR": "LocalExecutor",
-    "AIRFLOW__DATABASE__SQL_ALCHEMY_CONN": "postgresql+psycopg2://postgres:postgres@host.docker.internal:5432/airflow",
+    "AIRFLOW__DATABASE__SQL_ALCHEMY_CONN": "postgresql+psycopg2://airflow:airflow@postgres:5432/airflow",
     "AIRFLOW__CORE__FERNET_KEY": "",
     "AIRFLOW__WEBSERVER__EXPOSE_CONFIG": "True",
     "OPENLINEAGE_URL": "http://localhost:5000",
@@ -44,19 +43,11 @@
         "charliermarsh.ruff",
         "redhat.vscode-yaml",
         "mtxr.sqltools",
-        "mtxr.sqltools-driver-sqlite"
+        "mtxr.sqltools-driver-pg"
       ]
     }
   },
   "postCreateCommand": "bash scripts/bootstrap.sh",
-  "postStartCommand": "bash scripts/start_airflow.sh",
-  "mounts": [
-    "source=money-trail-pip-cache,target=/home/vscode/.cache/pip,type=volume"
-  ],
-  "runArgs": [
-    "--no-healthcheck",
-    "--init"
-  ],
   "overrideCommand": true,
   "updateRemoteUserUID": false,
   "remoteEnv": {
