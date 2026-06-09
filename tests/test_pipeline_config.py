@@ -80,6 +80,70 @@ cycles:
         with self.assertRaisesRegex(ValueError, "even years"):
             load_config(config_path)
 
+    def test_build_plan_expands_ordered_plan_units(self) -> None:
+        config_path = self._write_temp_config(
+            """
+parallelism:
+  cycles: parallel
+  file_types: sequential
+styles:
+  current:
+    file_types: [indiv, cn]
+    change_detection: true
+  historical:
+    file_types: [weball]
+    change_detection: false
+cycles:
+  - cycle: 2024
+    style: current
+  - cycles: "2020-2022"
+    style: historical
+"""
+        )
+
+        config = load_config(config_path)
+        plan = config.build_plan()
+
+        self.assertEqual(plan.parallelism.cycles, "parallel")
+        self.assertEqual(plan.parallelism.file_types, "sequential")
+        self.assertEqual(
+            [
+                (
+                    unit.cycle,
+                    unit.file_type,
+                    unit.style_name,
+                    unit.change_detection,
+                )
+                for unit in plan.units
+            ],
+            [
+                (2024, "indiv", "current", True),
+                (2024, "cn", "current", True),
+                (2020, "weball", "historical", False),
+                (2022, "weball", "historical", False),
+            ],
+        )
+
+    def test_build_plan_is_stable_across_repeated_calls(self) -> None:
+        config_path = self._write_temp_config(
+            """
+parallelism:
+  cycles: sequential
+  file_types: parallel
+styles:
+  current:
+    file_types: [indiv, cn]
+    change_detection: true
+cycles:
+  - cycle: 2024
+    style: current
+"""
+        )
+
+        config = load_config(config_path)
+
+        self.assertEqual(config.build_plan(), config.build_plan())
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -36,10 +36,24 @@ class CycleConfig:
     style: Style
 
 
+@dataclass(frozen=True)
+class PlanUnit:
+    cycle: int
+    file_type: str
+    style_name: str
+    change_detection: bool
+
+
 @dataclass
 class Parallelism:
     cycles: Literal["sequential", "parallel"]
     file_types: Literal["sequential", "parallel"]
+
+
+@dataclass(frozen=True)
+class PipelinePlan:
+    parallelism: Parallelism
+    units: list[PlanUnit]
 
 
 @dataclass
@@ -47,6 +61,20 @@ class PipelineConfig:
     parallelism: Parallelism
     styles: dict[str, Style]
     cycles: list[CycleConfig] = field(default_factory=list)
+
+    def build_plan(self) -> PipelinePlan:
+        units: list[PlanUnit] = []
+        for cycle_config in self.cycles:
+            for file_type in cycle_config.style.file_types:
+                units.append(
+                    PlanUnit(
+                        cycle=cycle_config.cycle,
+                        file_type=file_type,
+                        style_name=cycle_config.style.name,
+                        change_detection=cycle_config.style.change_detection,
+                    )
+                )
+        return PipelinePlan(parallelism=self.parallelism, units=units)
 
 
 def _expand_cycle_range(range_str: str) -> list[int]:
