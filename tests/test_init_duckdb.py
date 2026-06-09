@@ -42,7 +42,7 @@ class TestInitDuckdb(unittest.TestCase):
                 ORDER BY ordinal_position
                 """
             ).fetchall()
-        self.assertEqual(len(rows), 7)
+        self.assertEqual(len(rows), 11)
         col_names = [r[0] for r in rows]
         self.assertEqual(
             col_names,
@@ -54,6 +54,10 @@ class TestInitDuckdb(unittest.TestCase):
                 "last_modified",
                 "changed",
                 "downloaded",
+                "probe_ok",
+                "status_code",
+                "observed_url",
+                "error_message",
             ],
         )
         col_types = {r[0]: r[1] for r in rows}
@@ -64,6 +68,10 @@ class TestInitDuckdb(unittest.TestCase):
         self.assertEqual(col_types["last_modified"], "VARCHAR")
         self.assertEqual(col_types["changed"], "BOOLEAN")
         self.assertEqual(col_types["downloaded"], "BOOLEAN")
+        self.assertEqual(col_types["probe_ok"], "BOOLEAN")
+        self.assertEqual(col_types["status_code"], "INTEGER")
+        self.assertEqual(col_types["observed_url"], "VARCHAR")
+        self.assertEqual(col_types["error_message"], "VARCHAR")
 
     def test_idempotent(self) -> None:
         db_path = self._tmp_db()
