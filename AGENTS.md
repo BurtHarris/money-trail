@@ -25,7 +25,7 @@ If Python package or CLI availability is in question:
 
 ```bash
 python --version
-pip --version
+uv --version
 airflow version
 dbt --version
 ```

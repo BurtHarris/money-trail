@@ -1,0 +1,78 @@
+name: money-trail-dev
+
+x-airflow-env: &airflow-env
+  AIRFLOW_HOME: /workspaces/money-trail/.airflow
+  AIRFLOW__CORE__DAGS_FOLDER: /workspaces/money-trail/dags
+  AIRFLOW__CORE__LOAD_EXAMPLES: "False"
+  AIRFLOW__CORE__EXECUTOR: LocalExecutor
+  AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
+  AIRFLOW__CORE__FERNET_KEY: ""
+  AIRFLOW__WEBSERVER__EXPOSE_CONFIG: "True"
+  OPENLINEAGE_URL: http://localhost:5000
+  OPENLINEAGE_NAMESPACE: money-trail-dev
+  DBT_PROFILES_DIR: /workspaces/money-trail/dbt
+
+x-airflow-volumes: &airflow-volumes
+  - ../:/workspaces/money-trail:cached
+  - money-trail-uv-cache:/home/vscode/.cache/uv
+
+services:
+  airflow-web:
+    build:
+      dockerfile: .devcontainer/Dockerfile
+      context: ..
+    volumes: *airflow-volumes
+    command: sleep infinity
+    environment: *airflow-env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      airflow-init:
+        condition: service_completed_successfully
+
+  airflow-init:
+    build:
+      dockerfile: .devcontainer/Dockerfile
+      context: ..
+    volumes: *airflow-volumes
+    environment: *airflow-env
+    command: >
+      bash -c "
+        airflow db migrate &&
+        airflow users create --username devadmin --password devadmin --firstname Dev --lastname Admin --role Admin --email admin@localhost || true
+      "
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  airflow-scheduler:
+    build:
+      dockerfile: .devcontainer/Dockerfile
+      context: ..
+    volumes: *airflow-volumes
+    environment: *airflow-env
+    command: airflow scheduler
+    depends_on:
+      postgres:
+        condition: service_healthy
+      airflow-init:
+        condition: service_completed_successfully
+
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "airflow"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres-data:
+  money-trail-uv-cache:

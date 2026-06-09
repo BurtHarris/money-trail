@@ -30,7 +30,7 @@ Run and report output from:
 
 ```bash
 python --version
-pip --version
+uv --version
 airflow version
 dbt --version
 ```
