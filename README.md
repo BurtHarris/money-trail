@@ -1,81 +1,39 @@
 # money-trail
 
-Lightweight devcontainer-first workspace for FEC-oriented ELT development with Apache Airflow, OpenLineage, DuckDB, SQLite, and dbt.
+Lightweight devcontainer-first workspace for FEC-oriented ELT development with Apache Airflow, OpenLineage, DuckDB, PostgreSQL metadata, and dbt.
 
 ## What is included
 
 - VS Code devcontainer for Python-based data engineering work
-- Apache Airflow 2.9 with a PostgreSQL metadata database (replaces SQLite for concurrent worker support)
-- PostgreSQL 16 service running in the devcontainer
+- Apache Airflow 2.9 with a local PostgreSQL-backed metadata database
 - Example DAG that reads from an HTTP source and writes to DuckDB and SQLite
 - dbt starter project targeting DuckDB
 - OpenLineage Python and Airflow provider dependencies preinstalled
 
 ## Quick start
 
-1. Be sure you have up-to-date copies of Docker Desktop and VS Code on your machine.
+1. Open the repository in VS Code.
+2. Reopen in Container.
+3. Wait for the post-create bootstrap to finish.
+4. Open Airflow at http://localhost:8080
+   - username: `devadmin`
+   - password: `devadmin`
+5. Trigger the DAG `example_http_to_warehouse`.
+6. Run dbt commands from `dbt/`, for example:
+   - `dbt debug`
+   - `dbt run`
 
-```powershell
-winget update docker.desktop vscode
-```
+## Project layout
 
-2. Open the repository in VS Code.
-3. Reopen in Container.
-4. Wait for post-create setup to finish.
-5. Start Airflow services from the devcontainer terminal:
+- `.devcontainer/` - container build and VS Code setup
+- `dags/` - Airflow DAGs
+- `dbt/` - dbt project and example model
+- `data/` - local DuckDB, SQLite, and raw data artifacts
+- `scripts/` - bootstrap and local startup helpers
 
-```bash
-bash scripts/start_airflow.sh
-```
+## Notes
 
-6. Open Airflow at http://localhost:8080
-   - username: devadmin
-   - password: devadmin
-7. PostgreSQL is exposed on your host at localhost:5432.
-   - Inside the devcontainer network, services still use postgres:5432.
-8. Trigger the DAG example_http_to_warehouse.
-9. Run dbt commands from dbt/, for example:
-   - dbt debug
-   - dbt run
-
-Optional contributor setup (only if you will use Copilot agent GitHub issue/PR actions):
-
-1. Follow the Windows + devcontainer auth guide:
-   - [docs/windows-devcontainer-github-auth.md](docs/windows-devcontainer-github-auth.md)
-2. From the repo root on the Windows host, run:
-
-```powershell
-.\scripts\setup-gh-token.ps1
-```
-   - Default probes for existing `gh auth` credentials and reuses them when available.
-   - If no reusable `gh` token is found, it falls back to masked manual token paste.
-   - Script prints token creation links and minimum permissions when manual fallback is used.
-   - Default is session-only and does not persist token env vars.
-3. If you need token injection after VS Code/devcontainer restart, run:
-
-```powershell
-.\scripts\setup-gh-token.ps1 -PersistUserScope
-```
-
-4. Reopen the container so GH_TOKEN / GITHUB_TOKEN are injected.
-5. In the container, run:
-```bash
-scripts/gh_auth_harden.sh --status
-scripts/gh_auth_harden.sh --verify
-```
-6. When done with agent workflows, clear persisted vars:
-
-```powershell
-.\scripts\setup-gh-token.ps1 -ClearUserScope
-```
-
-Developer security/auth details (Windows + devcontainer):
-- [docs/windows-devcontainer-github-auth.md](docs/windows-devcontainer-github-auth.md)
-
-## More docs
-
-- Developer docs index: [docs/developer-guide.md](docs/developer-guide.md)
-- Contributor workflow: [docs/contributor-workflow.md](docs/contributor-workflow.md)
-- Devcontainer troubleshooting: [docs/devcontainer-troubleshooting.md](docs/devcontainer-troubleshooting.md)
-- Agent and issue workflow docs: [docs/agents](docs/agents)
-- Architecture decisions: [docs/adr](docs/adr)
+- This repo intentionally keeps orchestration lightweight to stabilize the development environment first.
+- OpenLineage packages are installed now; the next step can wire in a local backend such as Marquez or another collector.
+- The example HTTP source points to a public FEC developer page so the container can be validated without requiring an API key.
+- Once the container is stable, FEC ingestion code can be moved from your other repository into `dags/`, `include/`, and `dbt/models/`.
