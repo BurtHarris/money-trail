@@ -1,6 +1,7 @@
 apache-airflow==3.2.2
 apache-airflow-providers-http==6.0.3
 apache-airflow-providers-openlineage==2.18.0
+asyncpg==0.30.0
 cryptography>=44.0.3
 dbt-core==1.11.11
 dbt-duckdb==1.10.1
