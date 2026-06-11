@@ -105,3 +105,6 @@ _Avoid_: system tables, internal tracking
   - [Operating Expenditures (oppexp)](https://www.fec.gov/campaign-finance-data/operating-expenditures-file-description/)
   - [All Candidates Financial Summary (weball)](https://www.fec.gov/campaign-finance-data/all-candidates-file-description/)
 - **Architecture Decisions**: See `docs/adr/` (ADR 0001–0009)
+  - ADR 0002: Download State tracking
+  - ADR 0008: Daily Observation Collector  
+  - ADR 0009: Duck Lake architecture (supersedes aspects of 0004, 0006)
