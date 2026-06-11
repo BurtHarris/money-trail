@@ -5,6 +5,7 @@ x-airflow-env: &airflow-env
   AIRFLOW__CORE__EXECUTOR: LocalExecutor
   AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
   AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+  DATA_DIR: /app/data
 
 x-airflow-volumes: &airflow-volumes
   - ./dags:/app/dags
