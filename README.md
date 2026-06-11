@@ -7,7 +7,8 @@ Lightweight devcontainer-first workspace for FEC-oriented ELT development with A
 - VS Code devcontainer for Python-based data engineering work
 - Apache Airflow 3.2 with a local PostgreSQL-backed metadata database
 - Dedicated containers for Airflow webserver and scheduler, separate from the VS Code workspace container
-- Example DAG that reads from an HTTP source and writes to DuckDB and SQLite
+- **Duck Lake architecture**: Parquet files as immutable storage, DuckDB as query engine
+- FEC campaign finance data pipeline: bulk download extraction, parquet storage, dbt-based cleaning and QA
 - dbt starter project targeting DuckDB
 - OpenLineage Python and Airflow provider dependencies preinstalled
 
@@ -21,22 +22,31 @@ Lightweight devcontainer-first workspace for FEC-oriented ELT development with A
 5. Open Airflow at http://localhost:8080
    - username: `devadmin`
    - password: `devadmin`
-6. Trigger the DAG `example_http_to_warehouse`.
-7. Run dbt commands from `dbt/`, for example:
-   - `dbt debug`
-   - `dbt run`
+6. Trigger the DAG `fec_download_and_load` to download FEC data and populate parquet files.
+7. Run dbt commands from `dbt/`:
+   - `dbt debug` - verify DuckDB connection
+   - `dbt run` - materialize staging and marts views
+   - `dbt test` - run data quality tests
 
 ## Project layout
 
 - `.devcontainer/` - container build and VS Code setup
-- `dags/` - Airflow DAGs
-- `dbt/` - dbt project and example model
-- `data/` - local DuckDB, SQLite, and raw data artifacts
+- `dags/` - Airflow DAGs (FEC download, parquet write, dbt trigger)
+- `dbt/` - dbt project with staging and marts models
+- `data/` - local data artifacts (parquet files, DuckDB, raw ZIPs)
 - `scripts/` - bootstrap and local startup helpers
+- `docs/` - architecture decisions (ADRs), developer guide, runbooks
+- `sql/` - analysis and QA queries
+
+## Architecture Overview
+
+**Duck Lake**: Parquet files in `data/duckdb/` serve as primary immutable storage (one file per FEC file type per cycle). Airflow downloads and writes parquet. DuckDB queries these files via external tables. dbt creates views for cleaning (staging) and aggregation (marts).
+
+See [CONTEXT.md](CONTEXT.md) for domain glossary and [docs/adr/](docs/adr/) for architecture decisions (ADR 0009 documents the Duck Lake approach).
 
 ## Notes
 
-- This repo intentionally keeps orchestration lightweight to stabilize the development environment first.
-- OpenLineage packages are installed now; the next step can wire in a local backend such as Marquez or another collector.
-- The example HTTP source points to a public FEC developer page so the container can be validated without requiring an API key.
-- Once the container is stable, FEC ingestion code can be moved from your other repository into `dags/`, `include/`, and `dbt/models/`.
+- **Data pipeline**: Airflow downloads FEC bulk data and writes parquet files to `data/duckdb/`. dbt queries these files and creates views for analysis. See ADR 0009.
+- **Schema separation**: DuckDB uses four schemas (`raw`, `staging`, `marts`, `metadata`) to keep Airflow and dbt ownership clear. See ADR 0006.
+- **Data quality**: All cleaning and QA lives in dbt (staging and marts models). Airflow is kept simple. See ADR 0004.
+- **FEC documentation**: See https://www.fec.gov/campaign-finance-data/ and https://www.fec.gov/data/browse-data/?tab=bulk-data for data dictionary and file formats.

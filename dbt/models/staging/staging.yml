@@ -1,0 +1,205 @@
+version: 2
+
+models:
+  - name: stg_indiv
+    description: "Individual contributions staging model - cleaned raw FEC individual contributions data"
+    columns:
+      - name: cmte_id
+        description: "Committee ID"
+        tests:
+          - not_null
+      - name: tran_id
+        description: "Transaction ID"
+        tests:
+          - not_null
+          - unique
+      - name: transaction_dt
+        description: "Transaction date"
+        tests:
+          - not_null
+      - name: transaction_amt
+        description: "Transaction amount in dollars (normalized to 2 decimals)"
+        tests:
+          - not_null
+      - name: zip_code
+        description: "ZIP code (normalized to 5 digits)"
+        tests:
+          - dbt_utils.expression_is_true:
+              expression: "length(zip_code) <= 5 or zip_code is null"
+      - name: cycle
+        description: "Election cycle (2-year period ending in even year)"
+        tests:
+          - not_null
+          - accepted_values:
+              values: [2024, 2022, 2020, 2018, 2016, 2014, 2012, 2010, 2008, 2006, 2004, 2002, 2000]
+
+  - name: stg_cm
+    description: "Committee master staging model - cleaned raw FEC committee data"
+    columns:
+      - name: cmte_id
+        description: "Committee ID"
+        tests:
+          - not_null
+          - unique
+      - name: cmte_nm
+        description: "Committee name"
+        tests:
+          - not_null
+      - name: cmte_zip
+        description: "Committee ZIP code (normalized to 5 digits)"
+        tests:
+          - dbt_utils.expression_is_true:
+              expression: "length(cmte_zip) <= 5 or cmte_zip is null"
+      - name: cycle
+        description: "Election cycle"
+        tests:
+          - not_null
+
+  - name: stg_cn
+    description: "Candidate master staging model - cleaned raw FEC candidate data"
+    columns:
+      - name: cand_id
+        description: "Candidate ID"
+        tests:
+          - not_null
+          - unique
+      - name: cand_name
+        description: "Candidate name"
+        tests:
+          - not_null
+      - name: cand_zip
+        description: "Candidate ZIP code (normalized to 5 digits)"
+        tests:
+          - dbt_utils.expression_is_true:
+              expression: "length(cand_zip) <= 5 or cand_zip is null"
+      - name: cycle
+        description: "Election cycle"
+        tests:
+          - not_null
+
+  - name: stg_ccl
+    description: "Candidate-committee linkage staging model"
+    columns:
+      - name: cand_id
+        description: "Candidate ID"
+        tests:
+          - not_null
+      - name: cmte_id
+        description: "Committee ID"
+        tests:
+          - not_null
+      - name: cycle
+        description: "Election cycle"
+        tests:
+          - not_null
+
+  - name: stg_oth
+    description: "Committee-to-committee transfers staging model"
+    columns:
+      - name: cmte_id
+        description: "Committee ID"
+        tests:
+          - not_null
+      - name: tran_id
+        description: "Transaction ID"
+        tests:
+          - not_null
+      - name: transaction_dt
+        description: "Transaction date"
+        tests:
+          - not_null
+      - name: transaction_amt
+        description: "Transaction amount"
+        tests:
+          - not_null
+      - name: zip_code
+        description: "ZIP code (normalized to 5 digits)"
+        tests:
+          - dbt_utils.expression_is_true:
+              expression: "length(zip_code) <= 5 or zip_code is null"
+      - name: cycle
+        description: "Election cycle"
+        tests:
+          - not_null
+
+  - name: stg_pas2
+    description: "Contributions to candidates staging model"
+    columns:
+      - name: cmte_id
+        description: "Committee ID"
+        tests:
+          - not_null
+      - name: tran_id
+        description: "Transaction ID"
+        tests:
+          - not_null
+      - name: cand_id
+        description: "Candidate ID"
+        tests:
+          - not_null
+      - name: transaction_dt
+        description: "Transaction date"
+        tests:
+          - not_null
+      - name: transaction_amt
+        description: "Transaction amount"
+        tests:
+          - not_null
+      - name: zip_code
+        description: "ZIP code (normalized to 5 digits)"
+        tests:
+          - dbt_utils.expression_is_true:
+              expression: "length(zip_code) <= 5 or zip_code is null"
+      - name: cycle
+        description: "Election cycle"
+        tests:
+          - not_null
+
+  - name: stg_oppexp
+    description: "Operating expenditures staging model"
+    columns:
+      - name: cmte_id
+        description: "Committee ID"
+        tests:
+          - not_null
+      - name: tran_id
+        description: "Transaction ID"
+        tests:
+          - not_null
+      - name: transaction_dt
+        description: "Transaction date"
+        tests:
+          - not_null
+      - name: transaction_amt
+        description: "Transaction amount"
+        tests:
+          - not_null
+      - name: zip_code
+        description: "ZIP code (normalized to 5 digits)"
+        tests:
+          - dbt_utils.expression_is_true:
+              expression: "length(zip_code) <= 5 or zip_code is null"
+      - name: cycle
+        description: "Election cycle"
+        tests:
+          - not_null
+
+  - name: stg_weball
+    description: "All candidates financial summary staging model"
+    columns:
+      - name: cand_id
+        description: "Candidate ID"
+        tests:
+          - not_null
+      - name: cand_name
+        description: "Candidate name"
+        tests:
+          - not_null
+      - name: ttl_receipts
+        description: "Total receipts"
+        tests:
+          - not_null
+      - name: cycle
+        description: "Election cycle"
+        tests:
+          - not_null

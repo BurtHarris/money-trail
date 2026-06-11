@@ -1,8 +1,12 @@
-# Money Trail
+# Money Trail Context
 
 FEC campaign finance data pipeline: bulk download extraction, DuckDB loading, and dbt-based cleaning and QA, orchestrated by Apache Airflow.
 
-## Language
+## Language Reference
+
+See [FEC Campaign Finance Data](#fec-campaign-finance-data) for domain terms. See [Architecture & Ownership](#architecture--ownership) for system and implementation terms.
+
+### FEC Campaign Finance Data
 
 **Cycle**:
 A two-year FEC election cycle identified by the ending even year (e.g., `2024` covers 2023–2024). All file downloads and raw tables are partitioned by cycle.
@@ -63,3 +67,32 @@ _Avoid_: extract then load, unzip
 **Schema File**:
 A Python module under `include/fec_schemas/` (e.g., `indiv.py`) that defines an ordered list of `FECColumn` entries, each carrying the FEC-assigned raw column name, a readable alias, and a `pyarrow` type. The Raw Table uses FEC names; dbt staging models apply the readable aliases. Single source of truth for both.
 _Avoid_: data dictionary, column map, schema YAML
+
+### Architecture & Ownership
+
+**Duck Lake**:
+Parquet files in `data/duckdb/` serve as the primary immutable storage for FEC data (one file per cycle per file type, named `<file_type>_<cycle>.parquet`). DuckDB queries these files via external tables and views, serving as the query engine rather than source of truth. See ADR 0009.
+_Avoid_: "DuckDB lake," "database tables"
+
+**Raw Schema**:
+DuckDB external tables in the `raw` schema that reference parquet files. Named `raw_<file_type>_<cycle>` (e.g., `raw_indiv_2024`). Owned by Airflow (parquet files are written and managed by Airflow); queried by dbt. See ADR 0009, ADR 0006.
+_Avoid_: staging (reserved for dbt), landing zone
+
+**Staging Schema**:
+dbt-managed DuckDB views in the `staging` schema that clean, alias, and type-coerce raw external tables. Named `stg_<file_type>` (e.g., `stg_indiv`). Includes date parsing, amount formatting, null handling, ZIP code truncation to 5 digits, whitespace trimming, and FEC column name → readable alias mapping. Views union all cycles. Owned by dbt. See ADR 0004 and ADR 0009.
+_Avoid_: raw staging, intermediate tables
+
+**Marts Schema**:
+dbt-managed DuckDB views in the `marts` schema for analytical consumption. Includes Cross-Cycle Views that aggregate or filter staging views. See ADR 0009, ADR 0006.
+_Avoid_: final tables, analytics layer
+
+**Metadata Schema**:
+DuckDB tables in the `metadata` schema holding Airflow operational state: download state, daily observations, load history. Owned exclusively by Airflow. See ADR 0007, ADR 0008.
+_Avoid_: system tables, internal tracking
+
+## References
+
+- **FEC Data Documentation**: https://www.fec.gov/data/browse-data/?tab=bulk-data
+- **FEC Technical Specifications**: https://www.fec.gov/campaign-finance-data/technical-specifications/
+- **FEC Data Catalog**: https://www.fec.gov/campaign-finance-data/
+- **Architecture Decisions**: See `docs/adr/` (ADR 0001–0008)
