@@ -5,7 +5,10 @@ mkdir -p .airflow
 mkdir -p .local
 DATA_DIR="${DATA_DIR:-./data}"
 mkdir -p "${DATA_DIR}/raw"
+mkdir -p "${DATA_DIR}/stage"
+mkdir -p "${DATA_DIR}/ducklake"
 mkdir -p "${DATA_DIR}/duckdb"
+mkdir -p exports
 mkdir -p logs
 
 bootstrap_airflow="${BOOTSTRAP_AIRFLOW:-1}"

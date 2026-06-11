@@ -12,3 +12,4 @@ psycopg2-binary==2.9.12
 pyarrow==16.1.0
 requests==2.34.2
 sqlalchemy==2.0.50
+pytest==8.4.1

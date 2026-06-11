@@ -15,6 +15,7 @@ This guide covers project structure, implementation flow, and skill usage for co
 │       └── ...
 ├── .devcontainer/                     # Container build and VS Code setup
 ├── AGENTS.md                          # Entry point that tells skills where to read repo conventions
+├── compose/                           # Runtime compose topology (target location)
 ├── dags/                              # Airflow DAGs
 ├── data/                              # Local DuckDB, SQLite, and raw data artifacts
 ├── dbt/                               # dbt project and models

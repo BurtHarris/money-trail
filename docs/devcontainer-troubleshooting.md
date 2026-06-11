@@ -35,15 +35,15 @@ If the error persists, temporarily disable Wayland socket mounting in VS Code se
 
 ## Runtime stack port conflicts
 
-The devcontainer now runs only the workspace service. Airflow and PostgreSQL are started from the root runtime compose file ([docker-compose.yml](../docker-compose.yml)).
+The devcontainer now runs only the workspace service. Airflow runtime services are started from [compose/runtime.yml](../compose/runtime.yml) (with [docker-compose.yml](../docker-compose.yml) kept as compatibility entrypoint).
 
 If runtime startup fails with a port-in-use message (for example on 8080), check current container port bindings:
 
 ```powershell
-docker compose ps
+bash scripts/runtime.sh ps
 ```
 
-If needed, adjust host mappings in [docker-compose.yml](../docker-compose.yml) and restart the runtime stack.
+If needed, adjust host mappings in [compose/runtime.yml](../compose/runtime.yml) and restart the runtime stack.
 
 To clean stale containers that may still hold old ports:
 

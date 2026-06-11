@@ -18,7 +18,7 @@ Lightweight devcontainer-first workspace for FEC-oriented ELT development with A
 2. Reopen in Container.
 3. Wait for the post-create bootstrap to finish.
 4. Start Airflow runtime services when needed:
-   - `docker compose up -d postgres airflow-init airflow-webserver airflow-scheduler`
+   - `bash scripts/runtime.sh up`
 5. Open Airflow at http://localhost:8080
    - username: `devadmin`
    - password: `devadmin`
@@ -46,12 +46,17 @@ Lightweight devcontainer-first workspace for FEC-oriented ELT development with A
 
 - **[CONTEXT.md](CONTEXT.md)** — Domain glossary (Cycles, File Types, Raw Layer, Staging Schema, etc.) and system architecture terms. Start here to understand the ubiquitous language used across the project.
 - **[docs/developer-guide.md](docs/developer-guide.md)** — Developer onboarding, common commands, devcontainer vs runtime setup, and the architecture contract. Essential for contributors.
+- **[docs/architecture/repository-restructuring-plan.md](docs/architecture/repository-restructuring-plan.md)** — Target-state repository contract and phased restructuring plan tied to ADR decisions.
+- **[docs/architecture/dev-vs-runtime-topology.md](docs/architecture/dev-vs-runtime-topology.md)** — Explicit boundary between editor devcontainer topology and runtime Airflow service topology.
+- **[docs/architecture/data-tier-path-contract.md](docs/architecture/data-tier-path-contract.md)** — Canonical path contract for `data/raw`, `data/stage`, `data/ducklake`, `data/duckdb`, and `exports`.
+- **[docs/architecture/README.md](docs/architecture/README.md)** — Index for architecture contracts and restructuring docs.
 - **[docs/adr/README.md](docs/adr/README.md)** — Index of all Architecture Decision Records (ADRs 0001–0009). Each ADR documents a significant design choice and its consequences. ADR 0009 formalizes Duck Lake.
 - **[docs/runbooks/](docs/runbooks/)** — Operational guides and troubleshooting for common tasks.
 
 ## Notes
 
 - **Data pipeline**: Airflow downloads FEC bulk data and writes parquet files to `data/duckdb/`. dbt queries these files and creates views for analysis. See ADR 0009.
+- **Runtime control**: Use `scripts/runtime.sh` for canonical runtime lifecycle commands (`up`, `down`, `ps`, `logs`, `config`) against `compose/runtime.yml`.
 - **Schema separation**: DuckDB uses four schemas (`raw`, `staging`, `marts`, `metadata`) to keep Airflow and dbt ownership clear. See ADR 0006.
 - **Data quality**: All cleaning and QA lives in dbt (staging and marts models). Airflow is kept simple. See ADR 0004.
 - **FEC data dictionary**: Each file type has official format documentation at https://www.fec.gov/campaign-finance-data/ (see CONTEXT.md for links to specific formats).

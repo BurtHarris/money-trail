@@ -2,12 +2,16 @@
   "name": "money-trail",
   "dockerComposeFile": "docker-compose.yml",
   "service": "workspace",
-  "runServices": ["workspace"],
+  "runServices": [
+    "workspace"
+  ],
   "workspaceFolder": "/workspaces/money-trail",
   "remoteUser": "vscode",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
+  },
   "containerEnv": {
     "DBT_PROFILES_DIR": "/workspaces/money-trail/dbt",
-    "BOOTSTRAP_AIRFLOW": "0",
     "DATA_DIR": "/workspaces/money-trail/data"
   },
   "customizations": {
@@ -30,7 +34,7 @@
       ]
     }
   },
-  "postCreateCommand": "bash scripts/bootstrap.sh",
+  "postCreateCommand": "BOOTSTRAP_AIRFLOW=0 bash scripts/bootstrap.sh",
   "overrideCommand": true,
   "updateRemoteUserUID": false,
   "remoteEnv": {

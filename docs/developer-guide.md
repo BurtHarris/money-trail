@@ -2,7 +2,7 @@
 
 This guide orients contributors to the repository structure, devcontainer vs runtime, and common developer commands.
 
-**Quick Links**: See [README.md](../README.md) for project overview. See [CONTEXT.md](../CONTEXT.md) for domain glossary and architecture terminology. See [docs/adr/README.md](./adr/README.md) for all Architecture Decision Records.
+**Quick Links**: See [README.md](../README.md) for project overview. See [CONTEXT.md](../CONTEXT.md) for domain glossary and architecture terminology. See [docs/architecture/repository-restructuring-plan.md](./architecture/repository-restructuring-plan.md) for restructuring target-state contract. See [docs/architecture/dev-vs-runtime-topology.md](./architecture/dev-vs-runtime-topology.md) for environment boundaries. See [docs/architecture/data-tier-path-contract.md](./architecture/data-tier-path-contract.md) for data path ownership rules. See [docs/adr/README.md](./adr/README.md) for all Architecture Decision Records.
 
 For complete domain terminology (FEC cycles, file types, layers, etc.), see [CONTEXT.md](../../CONTEXT.md).
 
@@ -21,18 +21,22 @@ Key locations:
 - FEC imports: docs/imports/fec-data/
 - Notebooks: notebooks/
 - Runbooks: docs/runbooks/
-- Compose/runtime: docker-compose.yml and .devcontainer/docker-compose.yml
+- Compose/runtime: compose/runtime.yml (canonical), docker-compose.yml (compatibility), and .devcontainer/docker-compose.yml
 
 ## Dev vs Runtime
 
-- Devcontainer (interactive editor): uses .devcontainer/devcontainer.json; environment variables set for development include DATA_DIR (set to /workspaces/money-trail/data).
-- Runtime (Airflow compose): uses docker-compose.yml; services mount ./data to /app/data and have DATA_DIR=/app/data.
+- Devcontainer (interactive editor): uses `.devcontainer/devcontainer.json` and `.devcontainer/docker-compose.yml`; environment variables set for development include `DATA_DIR=/workspaces/money-trail/data`.
+- Runtime (Airflow compose): canonical entrypoint `compose/runtime.yml`; compatibility entrypoint `docker-compose.yml`. Runtime services mount host `./data` to `/app/data` and use `DATA_DIR=/app/data`.
+- Environment boundary contract: see `docs/architecture/dev-vs-runtime-topology.md`.
 
 ## Common commands
 
-- Launch local runtime: `docker compose -f docker-compose.yml up --detach --build`
-- Stop runtime: `docker compose -f docker-compose.yml down`
-- Rebuild a service: `docker compose -f docker-compose.yml build <service>`
+- Launch local runtime: `bash scripts/runtime.sh up`
+- Stop runtime: `bash scripts/runtime.sh down`
+- Runtime status: `bash scripts/runtime.sh ps`
+- Runtime logs: `bash scripts/runtime.sh logs -f`
+- Compose config check: `bash scripts/runtime.sh config`
+- Rebuild a service: `docker compose -f compose/runtime.yml build <service>`
 - Run dbt models: `cd dbt && dbt run`
 - Run dbt tests: `cd dbt && dbt test`
 
