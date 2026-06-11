@@ -1,0 +1,1 @@
+ADR 0003 — One DAG per File Type: Run a dedicated Airflow DAG per FEC file type and coordinate them via an orchestrator DAG to avoid cross-file blocking and permit independent schedules.
