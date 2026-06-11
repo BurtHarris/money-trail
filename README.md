@@ -49,4 +49,5 @@ See [CONTEXT.md](CONTEXT.md) for domain glossary and [docs/adr/](docs/adr/) for 
 - **Data pipeline**: Airflow downloads FEC bulk data and writes parquet files to `data/duckdb/`. dbt queries these files and creates views for analysis. See ADR 0009.
 - **Schema separation**: DuckDB uses four schemas (`raw`, `staging`, `marts`, `metadata`) to keep Airflow and dbt ownership clear. See ADR 0006.
 - **Data quality**: All cleaning and QA lives in dbt (staging and marts models). Airflow is kept simple. See ADR 0004.
-- **FEC documentation**: See https://www.fec.gov/campaign-finance-data/ and https://www.fec.gov/data/browse-data/?tab=bulk-data for data dictionary and file formats.
+- **FEC data dictionary**: Each file type has official format documentation at https://www.fec.gov/campaign-finance-data/ (see CONTEXT.md for links to specific formats).
+- **Data normalization**: ZIP codes are truncated to 5 digits, amounts rounded to 2 decimals, and whitespace trimmed in staging models.

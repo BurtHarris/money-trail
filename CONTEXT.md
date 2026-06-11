@@ -95,4 +95,13 @@ _Avoid_: system tables, internal tracking
 - **FEC Data Documentation**: https://www.fec.gov/data/browse-data/?tab=bulk-data
 - **FEC Technical Specifications**: https://www.fec.gov/campaign-finance-data/technical-specifications/
 - **FEC Data Catalog**: https://www.fec.gov/campaign-finance-data/
-- **Architecture Decisions**: See `docs/adr/` (ADR 0001–0008)
+- **FEC File Format Specifications**:
+  - [Individual Contributions (indiv)](https://www.fec.gov/campaign-finance-data/individual-contributions-file-description/)
+  - [Candidate Master (cn)](https://www.fec.gov/campaign-finance-data/candidate-master-file-description/)
+  - [Committee Master (cm)](https://www.fec.gov/campaign-finance-data/committee-master-file-description/)
+  - [Candidate-Committee Linkage (ccl)](https://www.fec.gov/campaign-finance-data/candidate-committee-linkage-file-description/)
+  - [Committee-to-Committee Transfers (oth)](https://www.fec.gov/campaign-finance-data/committee-to-committee-transfers-file-description/)
+  - [Contributions to Candidates (pas2)](https://www.fec.gov/campaign-finance-data/contributions-candidates-file-description/)
+  - [Operating Expenditures (oppexp)](https://www.fec.gov/campaign-finance-data/operating-expenditures-file-description/)
+  - [All Candidates Financial Summary (weball)](https://www.fec.gov/campaign-finance-data/all-candidates-file-description/)
+- **Architecture Decisions**: See `docs/adr/` (ADR 0001–0009)
