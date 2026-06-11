@@ -21,7 +21,7 @@ Adopt the following repository-level storage layout:
 - logs/          -> runtime logs (Airflow, tasks) mapped to host for inspection.
 
 Mounting strategy:
-- In devcontainer: mount repository root into /workspace/money-trail. Use relative paths in scripts.
+- In devcontainer: mount repository root into /workspaces/money-trail. Use relative paths in scripts.
 - In runtime compose: mount ./data -> /app/data, ./logs -> /app/logs, and explicit mounts for dags, dbt, scripts.
 - Avoid absolute Windows paths in code; prefer repository-relative paths and environment variables (DATA_DIR).
 
