@@ -19,5 +19,16 @@ Recommendations:
 - For each source file, extract a one-page summary and place in docs/imports/fec-data/ with a filename indicating origin (e.g., CONTEXT-fec.md, fec-adr-0001-summary.md).
 - Add cross-links from docs/architecture/repository-restructuring-plan.md and docs/developer-guide.md to these curated docs.
 
+Curated docs:
+- docs/imports/fec-data/context-fec.md — curated FEC context and glossary
+- docs/imports/fec-data/fec-adr-0001-summary.md
+- docs/imports/fec-data/fec-adr-0002-summary.md
+- docs/imports/fec-data/fec-adr-0003-summary.md
+- docs/imports/fec-data/fec-adr-0004-summary.md
+- docs/imports/fec-data/fec-adr-0005-summary.md
+- docs/imports/fec-data/fec-adr-0006-summary.md
+- docs/imports/fec-data/fec-adr-0008-summary.md
+
+
 Next steps taken:
 - No automatic code movement performed. Please review the candidate list and confirm which files/sections to extract and stage. If approved, automated extraction can be performed.

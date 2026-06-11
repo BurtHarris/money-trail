@@ -51,4 +51,14 @@ This document captures the accepted plan for restructuring the `money-trail` rep
 - ADR 0001: Dev/runtime split, Airflow-native ELT, Duck Lake (see docs/adr/0001-dev-runtime-split-duck-lake.md)
 - ADR 0002: (pending) Storage layout, host access
 
+Curated FEC docs:
+- docs/imports/fec-data/context-fec.md — curated FEC context and glossary
+- docs/imports/fec-data/fec-adr-0001-summary.md — ADR 0001 one-line summary
+- docs/imports/fec-data/fec-adr-0002-summary.md — ADR 0002 one-line summary
+- docs/imports/fec-data/fec-adr-0003-summary.md — ADR 0003 one-line summary
+- docs/imports/fec-data/fec-adr-0004-summary.md — ADR 0004 one-line summary
+- docs/imports/fec-data/fec-adr-0005-summary.md — ADR 0005 one-line summary
+- docs/imports/fec-data/fec-adr-0006-summary.md — ADR 0006 one-line summary
+- docs/imports/fec-data/fec-adr-0008-summary.md — ADR 0008 one-line summary
+
 /cc @BurtHarris
