@@ -13,13 +13,8 @@ services:
     volumes: *workspace-volumes
     command: sleep infinity
     environment:
-      AIRFLOW_HOME: /workspaces/money-trail/.airflow
-      AIRFLOW__CORE__DAGS_FOLDER: /workspaces/money-trail/dags
-      AIRFLOW__CORE__LOAD_EXAMPLES: "False"
-      AIRFLOW__CORE__EXECUTOR: SequentialExecutor
-      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: sqlite:////workspaces/money-trail/.airflow/airflow.db
       DBT_PROFILES_DIR: /workspaces/money-trail/dbt
-      BOOTSTRAP_AIRFLOW: "0"
+      DATA_DIR: /workspaces/money-trail/data
 
 volumes:
   money-trail-uv-cache:

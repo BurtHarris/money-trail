@@ -14,6 +14,7 @@ RUN set -eux; \
     docker.io \
     docker-compose \
     fd-find \
+    gh \
     git \
     jq \
     libpq-dev \

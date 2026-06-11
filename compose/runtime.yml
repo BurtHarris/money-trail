@@ -2,7 +2,8 @@ name: money-trail
 
 services:
   airflow:
-    build: .
+    build:
+      context: ..
     container_name: money-trail-airflow
     ports:
       - "8080:8080"
@@ -17,20 +18,20 @@ services:
       AIRFLOW_ADMIN_FIRSTNAME: Dev
       AIRFLOW_ADMIN_LASTNAME: Admin
     volumes:
-      - ./dags:/app/dags
-      - ./dbt:/app/dbt
-      - ./data:/app/data
-      - ./logs:/app/logs
-      - ./scripts:/app/scripts
+      - ../dags:/app/dags
+      - ../dbt:/app/dbt
+      - ../data:/app/data
+      - ../logs:/app/logs
+      - ../scripts:/app/scripts
     develop:
       watch:
-        - path: ./dags
+        - path: ../dags
           action: sync
           target: /app/dags
-        - path: ./dbt
+        - path: ../dbt
           action: sync
           target: /app/dbt
-        - path: ./scripts
+        - path: ../scripts
           action: sync
           target: /app/scripts
     depends_on:
@@ -43,13 +44,14 @@ services:
       start_period: 60s
 
   init-airflow:
-    build: .
+    build:
+      context: ..
     container_name: money-trail-init
     environment:
       AIRFLOW_HOME: /app
       AIRFLOW__CORE__SQL_ALCHEMY_CONN: sqlite:////app/data/airflow.db
     volumes:
-      - ./data:/app/data
+      - ../data:/app/data
     command: >
       bash -c "
         airflow db migrate &&
@@ -57,7 +59,8 @@ services:
       "
 
   scheduler:
-    build: .
+    build:
+      context: ..
     container_name: money-trail-scheduler
     environment:
       AIRFLOW_HOME: /app
@@ -65,17 +68,17 @@ services:
       AIRFLOW__CORE__SQL_ALCHEMY_CONN: sqlite:////app/data/airflow.db
       AIRFLOW__CORE__LOAD_EXAMPLES: "false"
     volumes:
-      - ./dags:/app/dags
-      - ./dbt:/app/dbt
-      - ./data:/app/data
-      - ./logs:/app/logs
-      - ./scripts:/app/scripts
+      - ../dags:/app/dags
+      - ../dbt:/app/dbt
+      - ../data:/app/data
+      - ../logs:/app/logs
+      - ../scripts:/app/scripts
     develop:
       watch:
-        - path: ./dags
+        - path: ../dags
           action: sync
           target: /app/dags
-        - path: ./scripts
+        - path: ../scripts
           action: sync
           target: /app/scripts
     command: airflow scheduler
