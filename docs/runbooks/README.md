@@ -22,7 +22,8 @@ This directory collects runbooks for the money-trail project: devcontainer setup
 Docker & Data tiers
 - DATA_DIR is set for devcontainer (/workspaces/money-trail/data) and compose (/app/data).
 - Host mounts: Compose mounts ./data into /app/data; place durable analytic outputs in data/ducklake and raw ingests in data/raw.
-- Starting runtime: docker compose -f docker-compose.yml up --detach --build
+- Starting runtime: docker compose -f docker-compose.yml up -d --build  # shorthand for --detach; use -d for brevity
+
 
 Windows notes
 - Avoid absolute Windows paths in code; prefer DATA_DIR and repository-relative paths.
