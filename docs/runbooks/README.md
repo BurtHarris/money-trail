@@ -1,6 +1,8 @@
 # Runbooks
 
-Operational runbooks for common tasks and troubleshooting.
+A runbook is a step-by-step reference for a specific operational task — starting a service, recovering from a failure, or performing routine maintenance. Unlike architecture docs (which explain *why*), runbooks focus on *what to do right now*. Each entry describes the trigger (when to use it), the steps to execute, and what success looks like.
+
+This directory collects runbooks for the money-trail project: devcontainer setup, runtime compose stack, data ingestion, and Windows-specific quirks.
 
 ## Windows Docker / Volume Notes
 
