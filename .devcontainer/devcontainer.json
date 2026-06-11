@@ -1,31 +1,13 @@
 {
   "name": "money-trail",
   "dockerComposeFile": "docker-compose.yml",
-  "service": "airflow-web",
+  "service": "workspace",
+  "runServices": ["workspace"],
   "workspaceFolder": "/workspaces/money-trail",
   "remoteUser": "vscode",
-  "features": {
-    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
-  },
-  "forwardPorts": [
-    8080
-  ],
-  "portsAttributes": {
-    "8080": {
-      "label": "Airflow Webserver"
-    }
-  },
   "containerEnv": {
-    "AIRFLOW_HOME": "/workspaces/money-trail/.airflow",
-    "AIRFLOW__CORE__DAGS_FOLDER": "/workspaces/money-trail/dags",
-    "AIRFLOW__CORE__LOAD_EXAMPLES": "False",
-    "AIRFLOW__CORE__EXECUTOR": "LocalExecutor",
-    "AIRFLOW__DATABASE__SQL_ALCHEMY_CONN": "postgresql+psycopg2://airflow:airflow@postgres:5432/airflow",
-    "AIRFLOW__CORE__FERNET_KEY": "",
-    "AIRFLOW__WEBSERVER__EXPOSE_CONFIG": "True",
-    "OPENLINEAGE_URL": "http://localhost:5000",
-    "OPENLINEAGE_NAMESPACE": "money-trail-dev",
-    "DBT_PROFILES_DIR": "/workspaces/money-trail/dbt"
+    "DBT_PROFILES_DIR": "/workspaces/money-trail/dbt",
+    "BOOTSTRAP_AIRFLOW": "0"
   },
   "customizations": {
     "vscode": {
