@@ -3,5 +3,5 @@ money_trail:
   outputs:
     dev:
       type: duckdb
-      path: /workspaces/money-trail/data/duckdb/money_trail.duckdb
+      path: "{{ env_var('DATA_DIR', './data') }}/duckdb/money_trail.duckdb"
       threads: 4
