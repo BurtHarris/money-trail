@@ -37,3 +37,19 @@ Key locations:
 - Run dbt tests: `cd dbt && dbt test`
 
 See docs/runbooks/README.md for more operational notes.
+
+## Architecture contract
+
+This project follows the Duck Lake contract: parquet files in data/duckdb/ are the immutable source-of-truth; DuckDB is the query engine and dbt owns cleaning and QA via views. Key points:
+
+- Storage: Airflow downloads FEC ZIPs and writes one parquet per cycle and file type to data/duckdb/<file_type>_<cycle>.parquet (owned by Airflow).
+- Registration: DuckDB registers parquet files as external tables in the raw schema (raw_<file_type>_<cycle>), not as primary DuckDB tables.
+- Transformation: dbt creates staging (stg_<file_type>) and marts views over the raw external tables and is responsible for type coercion, aliasing, and QA.
+- Metadata: Airflow owns metadata tables in the metadata schema (download state, daily observations, load history).
+- Ownership: Airflow = downloads, file lifecycle, and metadata. dbt = cleaning, QA, and analytical views.
+
+See ADR 0009 (docs/adr/0009-duck-lake-parquet-storage.md) for the formal decision and ADRs 0001–0008 for historical context.
+
+Notes:
+- Keep documentation changes small and focused; avoid changing runtime behavior during a docs PR.
+- Link to this developer guide from README.md and CONTEXT.md where appropriate.
