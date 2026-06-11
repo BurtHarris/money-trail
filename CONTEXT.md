@@ -2,7 +2,7 @@
 
 FEC campaign finance data pipeline: bulk download extraction, DuckDB loading, and dbt-based cleaning and QA, orchestrated by Apache Airflow.
 
-## Language Reference
+**Quick Links**: See [README.md](../README.md) for project overview and setup. See [docs/developer-guide.md](./developer-guide.md) for developer onboarding and common commands. See [docs/adr/README.md](./adr/README.md) for all Architecture Decision Records.
 
 See [FEC Campaign Finance Data](#fec-campaign-finance-data) for domain terms. See [Architecture & Ownership](#architecture--ownership) for system and implementation terms. For developer onboarding and the architecture contract, see [docs/developer-guide.md](docs/developer-guide.md).
 

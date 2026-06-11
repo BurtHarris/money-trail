@@ -2,7 +2,7 @@
 
 This guide orients contributors to the repository structure, devcontainer vs runtime, and common developer commands.
 
-## Glossary
+**Quick Links**: See [README.md](../README.md) for project overview. See [CONTEXT.md](../CONTEXT.md) for domain glossary and architecture terminology. See [docs/adr/README.md](./adr/README.md) for all Architecture Decision Records.
 
 For complete domain terminology (FEC cycles, file types, layers, etc.), see [CONTEXT.md](../../CONTEXT.md).
 

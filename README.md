@@ -42,7 +42,12 @@ Lightweight devcontainer-first workspace for FEC-oriented ELT development with A
 
 **Duck Lake**: Parquet files in `data/duckdb/` serve as primary immutable storage (one file per FEC file type per cycle). Airflow downloads and writes parquet. DuckDB queries these files via external tables. dbt creates views for cleaning (staging) and aggregation (marts).
 
-See [CONTEXT.md](CONTEXT.md) for domain glossary, [docs/developer-guide.md](docs/developer-guide.md) for developer onboarding and the architecture contract, and [docs/adr/](docs/adr/) for architecture decisions (ADR 0009 documents the Duck Lake approach).
+### Documentation Roadmap
+
+- **[CONTEXT.md](CONTEXT.md)** — Domain glossary (Cycles, File Types, Raw Layer, Staging Schema, etc.) and system architecture terms. Start here to understand the ubiquitous language used across the project.
+- **[docs/developer-guide.md](docs/developer-guide.md)** — Developer onboarding, common commands, devcontainer vs runtime setup, and the architecture contract. Essential for contributors.
+- **[docs/adr/README.md](docs/adr/README.md)** — Index of all Architecture Decision Records (ADRs 0001–0009). Each ADR documents a significant design choice and its consequences. ADR 0009 formalizes Duck Lake.
+- **[docs/runbooks/](docs/runbooks/)** — Operational guides and troubleshooting for common tasks.
 
 ## Notes
 
