@@ -42,7 +42,7 @@ Lightweight devcontainer-first workspace for FEC-oriented ELT development with A
 
 **Duck Lake**: Parquet files in `data/duckdb/` serve as primary immutable storage (one file per FEC file type per cycle). Airflow downloads and writes parquet. DuckDB queries these files via external tables. dbt creates views for cleaning (staging) and aggregation (marts).
 
-See [CONTEXT.md](CONTEXT.md) for domain glossary and [docs/adr/](docs/adr/) for architecture decisions (ADR 0009 documents the Duck Lake approach).
+See [CONTEXT.md](CONTEXT.md) for domain glossary, [docs/developer-guide.md](docs/developer-guide.md) for developer onboarding and the architecture contract, and [docs/adr/](docs/adr/) for architecture decisions (ADR 0009 documents the Duck Lake approach).
 
 ## Notes
 

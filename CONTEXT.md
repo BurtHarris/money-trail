@@ -4,7 +4,7 @@ FEC campaign finance data pipeline: bulk download extraction, DuckDB loading, an
 
 ## Language Reference
 
-See [FEC Campaign Finance Data](#fec-campaign-finance-data) for domain terms. See [Architecture & Ownership](#architecture--ownership) for system and implementation terms.
+See [FEC Campaign Finance Data](#fec-campaign-finance-data) for domain terms. See [Architecture & Ownership](#architecture--ownership) for system and implementation terms. For developer onboarding and the architecture contract, see [docs/developer-guide.md](docs/developer-guide.md).
 
 ### FEC Campaign Finance Data
 
