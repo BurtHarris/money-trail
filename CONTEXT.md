@@ -2,7 +2,7 @@
 
 FEC campaign finance data pipeline: bulk download extraction, DuckDB loading, and dbt-based cleaning and QA, orchestrated by Apache Airflow.
 
-**Quick Links**: See [README.md](../README.md) for project overview and setup. See [docs/developer-guide.md](./developer-guide.md) for developer onboarding and common commands. See [docs/adr/README.md](./adr/README.md) for all Architecture Decision Records.
+**Quick Links**: See [README.md](README.md) for project overview and setup. See [docs/developer-guide.md](docs/developer-guide.md) for developer onboarding and common commands. See [docs/architecture/repository-restructuring-plan.md](docs/architecture/repository-restructuring-plan.md) for restructuring phases. See [docs/architecture/data-tier-path-contract.md](docs/architecture/data-tier-path-contract.md) for data path ownership. See [docs/adr/README.md](docs/adr/README.md) for all Architecture Decision Records.
 
 See [FEC Campaign Finance Data](#fec-campaign-finance-data) for domain terms. See [Architecture & Ownership](#architecture--ownership) for system and implementation terms. For developer onboarding and the architecture contract, see [docs/developer-guide.md](docs/developer-guide.md).
 
@@ -71,7 +71,7 @@ _Avoid_: data dictionary, column map, schema YAML
 ### Architecture & Ownership
 
 **Duck Lake**:
-Parquet files in `data/duckdb/` serve as the primary immutable storage for FEC data (one file per cycle per file type, named `<file_type>_<cycle>.parquet`). DuckDB queries these files via external tables and views, serving as the query engine rather than source of truth. See ADR 0009.
+Parquet files in `data/ducklake/` are the target primary immutable storage for FEC data (one file per cycle per file type, named `<file_type>_<cycle>.parquet`). During migration, `data/duckdb/` remains a compatibility/query surface. DuckDB queries parquet via external tables and views, serving as the query engine rather than source of truth. See ADR 0009 and the data-tier path contract.
 _Avoid_: "DuckDB lake," "database tables"
 
 **Raw Schema**:
@@ -106,5 +106,5 @@ _Avoid_: system tables, internal tracking
   - [All Candidates Financial Summary (weball)](https://www.fec.gov/campaign-finance-data/all-candidates-file-description/)
 - **Architecture Decisions**: See `docs/adr/` (ADR 0001–0009)
   - ADR 0002: Download State tracking
-  - ADR 0008: Daily Observation Collector  
+  - ADR 0008: Daily Observation Collector
   - ADR 0009: Duck Lake architecture (supersedes aspects of 0004, 0006)

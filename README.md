@@ -40,7 +40,7 @@ Lightweight devcontainer-first workspace for FEC-oriented ELT development with A
 
 ## Architecture Overview
 
-**Duck Lake**: Parquet files in `data/duckdb/` serve as primary immutable storage (one file per FEC file type per cycle). Airflow downloads and writes parquet. DuckDB queries these files via external tables. dbt creates views for cleaning (staging) and aggregation (marts).
+**Duck Lake**: Parquet files in `data/ducklake/` are the target primary immutable storage (one file per FEC file type per cycle). During migration, compatibility surfaces in `data/duckdb/` remain available. Airflow downloads and writes parquet, DuckDB queries parquet via external tables, and dbt builds cleaning/aggregation views.
 
 ### Documentation Roadmap
 
@@ -55,7 +55,7 @@ Lightweight devcontainer-first workspace for FEC-oriented ELT development with A
 
 ## Notes
 
-- **Data pipeline**: Airflow downloads FEC bulk data and writes parquet files to `data/duckdb/`. dbt queries these files and creates views for analysis. See ADR 0009.
+- **Data pipeline**: Airflow downloads FEC bulk data and writes parquet files to Duck Lake surfaces (`data/ducklake/` target state, `data/duckdb/` compatibility during migration). dbt queries parquet-backed raw tables and creates views for analysis. See ADR 0009 and the data-tier path contract.
 - **Runtime control**: Use `scripts/runtime.sh` for canonical runtime lifecycle commands (`up`, `down`, `ps`, `logs`, `config`) against `compose/runtime.yml`.
 - **Schema separation**: DuckDB uses four schemas (`raw`, `staging`, `marts`, `metadata`) to keep Airflow and dbt ownership clear. See ADR 0006.
 - **Data quality**: All cleaning and QA lives in dbt (staging and marts models). Airflow is kept simple. See ADR 0004.

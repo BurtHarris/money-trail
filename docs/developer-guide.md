@@ -11,7 +11,7 @@ Brief definitions of developer terms:
 - **ADR (Architecture Decision Record):** A short document that captures a significant architectural decision, its context, and its consequences. ADRs are stored in `docs/adr/` and are numbered sequentially. See ADR 0001–0009.
 - **Devcontainer:** A containerized development environment defined in `.devcontainer/`. Opening this repository in VS Code or GitHub Codespaces automatically builds and starts the devcontainer, giving every contributor an identical editor environment with all tools pre-installed.
 - **DATA_DIR:** An environment variable that points to the root of the local data directory (`/workspaces/money-trail/data` in devcontainer, `/app/data` in the runtime compose stack). Scripts and DAGs use this variable instead of hardcoded paths so the same code works in both environments.
-- **Duck Lake:** Parquet files in `data/duckdb/` that serve as primary immutable storage for FEC data, queryable via DuckDB external tables. See ADR 0009.
+- **Duck Lake:** Parquet files in `data/ducklake/` (target state) serving as primary immutable storage for FEC data. During migration, `data/duckdb/` remains a compatibility/query surface. See ADR 0009 and the data-tier path contract.
 - **Raw Schema:** DuckDB external tables (prefixed `raw_`) pointing to parquet files. Owned by Airflow. See ADR 0006.
 - **Staging Schema:** dbt-managed views (prefixed `stg_`) that clean and alias raw data. See ADR 0004.
 - **Marts Schema:** dbt-managed views aggregating or filtering staging data for analytics. See ADR 0006.
@@ -44,9 +44,9 @@ See docs/runbooks/README.md for more operational notes.
 
 ## Architecture contract
 
-This project follows the Duck Lake contract: parquet files in data/duckdb/ are the immutable source-of-truth; DuckDB is the query engine and dbt owns cleaning and QA via views. Key points:
+This project follows the Duck Lake contract: parquet files in `data/ducklake/` are the target immutable source-of-truth, while `data/duckdb/` remains a compatibility layer during migration. DuckDB is the query engine and dbt owns cleaning and QA via views. Key points:
 
-- Storage: Airflow downloads FEC ZIPs and writes one parquet per cycle and file type to data/duckdb/<file_type>_<cycle>.parquet (owned by Airflow).
+- Storage: Airflow downloads FEC ZIPs and writes one parquet per cycle and file type to `data/ducklake/<file_type>_<cycle>.parquet` as target behavior; compatibility references under `data/duckdb/` are kept until migration slices complete.
 - Registration: DuckDB registers parquet files as external tables in the raw schema (raw_<file_type>_<cycle>), not as primary DuckDB tables.
 - Transformation: dbt creates staging (stg_<file_type>) and marts views over the raw external tables and is responsible for type coercion, aliasing, and QA.
 - Metadata: Airflow owns metadata tables in the metadata schema (download state, daily observations, load history).
