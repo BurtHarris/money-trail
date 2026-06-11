@@ -3,8 +3,9 @@ set -euo pipefail
 
 mkdir -p .airflow
 mkdir -p .local
-mkdir -p data/raw
-mkdir -p data/duckdb
+DATA_DIR="${DATA_DIR:-./data}"
+mkdir -p "${DATA_DIR}/raw"
+mkdir -p "${DATA_DIR}/duckdb"
 mkdir -p logs
 
 bootstrap_airflow="${BOOTSTRAP_AIRFLOW:-1}"
