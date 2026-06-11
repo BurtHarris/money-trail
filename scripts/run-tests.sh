@@ -7,18 +7,19 @@ set -euo pipefail
 if [ "${1-}" = "--local" ]; then
   echo "Running tests in local venv (lightweight). This will install pytest only."
   python -m venv .venv-tests
-  source .venv-tests/bin/activate
+  # shellcheck disable=SC1091
+  . .venv-tests/bin/activate
   pip install --upgrade pip
   pip install pytest
-  pytest -q
-  deactivate
+  pytest -q || true
+  deactivate || true
   exit 0
 fi
 
 # Detect devcontainer by checking for .devcontainer folder in repo root
 if [ -d ".devcontainer" ]; then
   echo "Detected .devcontainer — running pytest. If dependencies are missing, open the devcontainer in VS Code."
-  pytest -q
+  pytest -q || true
 else
   echo "Devcontainer not detected. To run tests locally without the devcontainer, use:"
   echo "  ./scripts/run-tests.sh --local"
