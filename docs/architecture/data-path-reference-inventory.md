@@ -27,7 +27,7 @@ Current path references mapped for #36 migration sequencing.
 ### Tooling/examples
 
 - `scripts/generate_sample_data.sql`
-- `scripts/load_sample.ps1`
+- `scripts/load_sample.sh`
 
 ## Target-tier references already present
 

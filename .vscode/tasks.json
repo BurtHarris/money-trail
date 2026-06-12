@@ -5,9 +5,6 @@
       "label": "Environment: Devcontainer hint",
       "type": "shell",
       "command": "if [ -f /.dockerenv ] || [ -n \"${REMOTE_CONTAINERS:-}\" ] || [ -n \"${DEVCONTAINER:-}\" ]; then exit 0; fi; echo \"WARNING: Open this workspace in the Dev Container for full tools (Command Palette -> Dev Containers: Reopen in Container).\"; exit 1",
-      "windows": {
-        "command": "if ($env:REMOTE_CONTAINERS -or $env:DEVCONTAINER -or $env:CODESPACES) { exit 0 }; Write-Host 'WARNING: Open this workspace in the Dev Container for full tools (Command Palette -> Dev Containers: Reopen in Container).'; exit 1"
-      },
       "runOptions": {
         "runOn": "folderOpen"
       },
@@ -24,9 +21,6 @@
       "label": "Docker: Ensure Running",
       "type": "shell",
       "command": "docker info > /dev/null 2>&1 && exit 0; echo 'Docker daemon not running. Please start Docker and retry.'; exit 1",
-      "windows": {
-        "command": "if (docker info 2>$null) { exit 0 }; $dd = 'C:\\Program Files\\Docker\\Docker\\Docker Desktop.exe'; if (-not (Test-Path $dd)) { Write-Error 'Docker Desktop not found. Please start Docker manually.'; exit 1 }; Write-Host 'Starting Docker Desktop...'; Start-Process $dd; $timeout = 120; $interval = 3; while ($timeout -gt 0) { Start-Sleep $interval; $timeout -= $interval; if (docker info 2>$null) { Write-Host 'Docker is ready.'; exit 0 } }; Write-Error 'Docker Desktop did not become ready in time.'; exit 1"
-      },
       "presentation": {
         "reveal": "always",
         "panel": "shared",
@@ -57,9 +51,6 @@
       "label": "Tests: Run (auto env)",
       "type": "shell",
       "command": "if [ -f /.dockerenv ] || [ -n \"${REMOTE_CONTAINERS:-}\" ] || [ -n \"${DEVCONTAINER:-}\" ]; then bash scripts/run-tests.sh; else bash scripts/run-tests.sh --local; fi",
-      "windows": {
-        "command": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts\\run-tests.ps1 -Local"
-      },
       "problemMatcher": []
     }
   ]

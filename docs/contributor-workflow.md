@@ -189,8 +189,8 @@ Use token environment variables as the default auth path for `gh` in this repo.
 This enables local GitHub CLI-backed agent actions in this workspace.
 Default helper behavior reuses existing host `gh auth` credentials and is session-only.
 
-Windows host + devcontainer guidance is centralized here:
-- [docs/windows-devcontainer-github-auth.md](windows-devcontainer-github-auth.md)
+Host + devcontainer guidance is centralized here:
+- [docs/github-auth.md](github-auth.md)
 
 ## Avoiding Save Conflicts During Agent Edits
 
