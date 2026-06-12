@@ -20,6 +20,9 @@ airflow-triggerer.pid
 # Python local environment and tooling caches
 .venv/
 venv/
+.venv-tests/
+env/
+ENV/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
