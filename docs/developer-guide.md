@@ -55,26 +55,35 @@ Key locations:
 ## VS Code run and debug (F5)
 
 Core hotkeys are listed at the top of this document.
-- For `Run:*` terminal profiles, `F5` and `Ctrl+F5` run the same command effect (non-debug terminal launch).
+- For `Daily:*` terminal profiles, `F5` and `Ctrl+F5` run the same command effect (non-debug terminal launch).
 
 Launch profiles are committed in `.vscode/launch.json` and run in the environment that VS Code is attached to (host shell or devcontainer shell).
 
 Best-practice chooser:
-- Use `Run: Runtime Up/Logs/Down` for Airflow service lifecycle.
-- Use `Run: Tests (auto env)` for quick non-debug test runs.
-- Use `Debug:*` profiles for Python code and tests you want to step through.
+- Use `Daily: F5 Smart UI` as the default F5 action. It ensures runtime is healthy and opens Airflow UI when transitioning from not-ready to ready.
+- Use `Daily: Watch Runtime Logs` for ongoing service visibility.
+- Use `Daily: Run All Tests` for quick non-debug test runs.
+- Use `Advanced:*` profiles for lifecycle overrides and step-through debugging.
 
 Execution model by profile:
 
 | Profile | Runs where command starts | Runs where workload actually executes | Best use |
 |---|---|---|---|
-| `Run: Runtime Up` | Current VS Code shell (devcontainer if attached) | Docker Compose runtime containers from `compose/runtime.yml` | Start Airflow runtime stack |
-| `Run: Runtime Logs` | Current VS Code shell | Docker Compose runtime containers | Tail runtime logs |
-| `Run: Runtime Down` | Current VS Code shell | Docker Compose runtime containers | Stop runtime stack |
-| `Run: Tests (auto env)` | Current VS Code shell | Same shell (devcontainer path inside container, local path on host) | Fast test run without debugger |
-| `Debug: Current Python File` | Current VS Code shell | Python process in same shell under `debugpy` | Step-through debugging for one file |
-| `Debug: Pytest (workspace)` | Current VS Code shell | Pytest process in same shell under `debugpy` | Debug multiple tests |
-| `Debug: Pytest (current file)` | Current VS Code shell | Pytest process in same shell under `debugpy` | Debug one test file |
+| `Daily: F5 Smart UI` | Current VS Code shell (devcontainer if attached) | Docker Compose runtime containers from `compose/runtime.yml` | One-key readiness for web UI; opens UI on first ready transition |
+| `Daily: Watch Runtime Logs` | Current VS Code shell | Docker Compose runtime containers | Tail runtime logs |
+| `Daily: Run All Tests` | Current VS Code shell | Same shell (devcontainer path inside container, local path on host) | Fast test run without debugger |
+| `Advanced: Runtime Up` | Current VS Code shell | Docker Compose runtime containers | Manual lifecycle start |
+| `Advanced: Runtime Down` | Current VS Code shell | Docker Compose runtime containers | Manual lifecycle stop |
+| `Advanced: Debug Current Python File` | Current VS Code shell | Python process in same shell under `debugpy` | Step-through debugging for one file |
+| `Advanced: Debug Tests (workspace)` | Current VS Code shell | Pytest process in same shell under `debugpy` | Debug multiple tests |
+| `Advanced: Debug Tests (current file)` | Current VS Code shell | Pytest process in same shell under `debugpy` | Debug one test file |
+
+Smart F5 behavior:
+- Checks runtime health first.
+- Runs runtime up idempotently.
+- Opens Airflow UI on `http://localhost:8080` when transitioning from not-ready to ready.
+- Skips reopening UI when runtime is already healthy.
+- Tries integrated browser first (VS Code simple browser URI), then falls back to the host browser.
 
 A folder-open task in `.vscode/tasks.json` prints a warning only when VS Code is not attached to a devcontainer, so non-container sessions (including agent-mode opens) get an explicit prompt to switch.
 

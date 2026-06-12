@@ -1,10 +1,9 @@
-# Windows + Devcontainer GitHub Auth Guide
+# Devcontainer GitHub Auth Guide
 
-This guide is for Windows host + VS Code devcontainer workflows in this repository.
+This guide is for bash-based host + VS Code devcontainer workflows in this repository.
 
 Scope:
 - Focuses on GitHub auth for local `gh` operations and local GitHub CLI-backed agent actions.
-- Does not cover Linux host setup.
 - Does not change test execution flow (tests still run in devcontainer/CI).
 
 ## Choose an auth path
@@ -14,16 +13,16 @@ Scope:
 Use this when you want an automated host-side flow with no browser token-creation step.
 Default behavior is session-only so your long-lived personal `gh auth login` style is not changed.
 
-1. Ensure you are already logged into `gh` on the Windows host:
+1. Ensure you are already logged into `gh` on the host:
 
-```powershell
+```bash
 gh auth status
 ```
 
-2. On Windows host PowerShell (repo root), run:
+2. From the repo root, run:
 
-```powershell
-.\scripts\setup-gh-token.ps1
+```bash
+bash scripts/setup-gh-token.sh
 ```
 
 Behavior:
@@ -33,8 +32,8 @@ Behavior:
 
 3. If you need token injection after a VS Code/devcontainer restart, opt in to temporary persistence:
 
-```powershell
-.\scripts\setup-gh-token.ps1 -PersistUserScope
+```bash
+bash scripts/setup-gh-token.sh --persist-user-scope
 ```
 
 4. Reopen the devcontainer so `GH_TOKEN` / `GITHUB_TOKEN` are injected.
@@ -47,8 +46,8 @@ scripts/gh_auth_harden.sh --verify
 
 6. When done with agent workflows, clear persisted vars:
 
-```powershell
-.\scripts\setup-gh-token.ps1 -ClearUserScope
+```bash
+bash scripts/setup-gh-token.sh --clear-user-scope
 ```
 
 Why Path A is preferred:
@@ -72,8 +71,8 @@ GitHub does not provide a public CLI/API to auto-create fine-grained PATs. Creat
    - Expiration: short-lived (recommended)
 2. Run:
 
-```powershell
-.\scripts\setup-gh-token.ps1
+```bash
+bash scripts/setup-gh-token.sh
 ```
 
 Important caveats:

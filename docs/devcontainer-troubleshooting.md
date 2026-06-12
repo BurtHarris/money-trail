@@ -10,12 +10,12 @@ If VS Code fails to open the container with an error similar to:
 
 Docker Desktop usually cannot reach the WSL distro mount service used for the Wayland socket mount.
 
-Use this recovery sequence from PowerShell:
+Use this recovery sequence from a bash shell:
 
 1. Close VS Code windows attached to this repository.
 2. Stop WSL:
 
-```powershell
+```bash
 wsl --shutdown
 ```
 
@@ -23,7 +23,7 @@ wsl --shutdown
 4. Verify WSL integration is enabled for Ubuntu in Docker Desktop settings.
 5. Start Ubuntu once to rehydrate distro services:
 
-```powershell
+```bash
 wsl -d Ubuntu -e sh -lc "echo wsl-ok"
 ```
 
@@ -39,7 +39,7 @@ The devcontainer now runs only the workspace service. Airflow runtime services a
 
 If runtime startup fails with a port-in-use message (for example on 8080), check current container port bindings:
 
-```powershell
+```bash
 bash scripts/runtime.sh ps
 ```
 
@@ -47,12 +47,12 @@ If needed, adjust host mappings in [compose/runtime.yml](../compose/runtime.yml)
 
 To clean stale containers that may still hold old ports:
 
-```powershell
+```bash
 docker ps -a --format "table {{.ID}}\t{{.Names}}\t{{.Status}}\t{{.Ports}}"
 ```
 
 Then remove stale entries as needed:
 
-```powershell
+```bash
 docker rm -f <container-name>
 ```
