@@ -90,6 +90,10 @@ _Avoid_: final tables, analytics layer
 DuckDB tables in the `metadata` schema holding Airflow operational state: download state, daily observations, load history. Owned exclusively by Airflow. See ADR 0007, ADR 0008.
 _Avoid_: system tables, internal tracking
 
+**Runtime Verb**:
+A canonical lifecycle command exposed by `scripts/runtime.sh` and aligned to Docker Compose verbs: `up`, `down`, `start`, `stop`, `restart`, plus operational commands `ps`, `logs`, and `config`. Used to manage Airflow runtime services consistently in local development.
+_Avoid_: ad-hoc docker command, manual compose workflow
+
 ## References
 
 - **FEC Data Documentation**: https://www.fec.gov/data/browse-data/?tab=bulk-data
@@ -104,7 +108,7 @@ _Avoid_: system tables, internal tracking
   - [Contributions to Candidates (pas2)](https://www.fec.gov/campaign-finance-data/contributions-candidates-file-description/)
   - [Operating Expenditures (oppexp)](https://www.fec.gov/campaign-finance-data/operating-expenditures-file-description/)
   - [All Candidates Financial Summary (weball)](https://www.fec.gov/campaign-finance-data/all-candidates-file-description/)
-- **Architecture Decisions**: See `docs/adr/` (ADR 0001–0009)
+- **Architecture Decisions**: See `docs/adr/` (ADR 0001–0010)
   - ADR 0002: Download State tracking
   - ADR 0008: Daily Observation Collector
   - ADR 0009: Duck Lake architecture (supersedes aspects of 0004, 0006)

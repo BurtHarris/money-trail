@@ -43,6 +43,11 @@ This directory contains all Architecture Decision Records for the Money Trail pr
 - **[ADR 0002: Storage Layout and Windows Host Access](0002-storage-layout.md)**
   - Defines storage directory layout and Windows host file mounting strategy for devcontainer. Ensures `DATA_DIR` environment variable works consistently across dev and runtime.
 
+### Developer Experience
+
+- **[ADR 0010: Airflow Hosts the Project Docs Browser](0010-airflow-docs-browser.md)**
+  - Exposes the curated markdown docs inside the Airflow UI through a plugin-backed external view so docs stay in the same authenticated browser session and can be printed cleanly.
+
 ### Foundational
 
 - **[ADR 0001: Separate Development and Runtime Environments; Adopt Duck Lake](0001-dev-runtime-split-duck-lake.md)** (Foundational)

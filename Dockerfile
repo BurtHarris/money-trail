@@ -27,8 +27,12 @@ COPY --from=builder /usr/local/bin /usr/local/bin
 # Copy application code
 COPY dags/ ./dags/
 COPY dbt/ ./dbt/
+COPY docs/ ./docs/
+COPY plugins/ ./plugins/
 COPY scripts/ ./scripts/
 COPY data/ ./data/
+COPY README.md ./README.md
+COPY CONTEXT.md ./CONTEXT.md
 COPY .env.example ./.env.example
 
 # Create airflow home and default directories

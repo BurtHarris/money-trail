@@ -22,6 +22,7 @@ Lightweight devcontainer-first workspace for FEC-oriented ELT development with A
 5. Open Airflow at http://localhost:8080
    - username: `devadmin`
    - password: `devadmin`
+   - use the top-level **Docs** menu to browse and print repository markdown
 6. Trigger the DAG `fec_download_and_load` to download FEC data and populate parquet files.
 7. Run dbt commands from `dbt/`:
    - `dbt debug` - verify DuckDB connection
@@ -34,6 +35,7 @@ Lightweight devcontainer-first workspace for FEC-oriented ELT development with A
 - `dags/` - Airflow DAGs (FEC download, parquet write, dbt trigger)
 - `dbt/` - dbt project with staging and marts models
 - `data/` - local data artifacts (parquet files, DuckDB, raw ZIPs)
+- `plugins/` - Airflow plugin modules, including the in-UI docs browser
 - `scripts/` - bootstrap and local startup helpers
 - `docs/` - architecture decisions (ADRs), developer guide, runbooks
 - `sql/` - analysis and QA queries
@@ -41,6 +43,8 @@ Lightweight devcontainer-first workspace for FEC-oriented ELT development with A
 ## Architecture Overview
 
 **Duck Lake**: Parquet files in `data/ducklake/` are the target primary immutable storage (one file per FEC file type per cycle). During migration, compatibility surfaces in `data/duckdb/` remain available. Airflow downloads and writes parquet, DuckDB queries parquet via external tables, and dbt builds cleaning/aggregation views.
+
+**Docs browser**: Airflow exposes a top-level Docs menu that renders the curated repository markdown set and supports browser printing.
 
 ### Documentation Roadmap
 
@@ -50,13 +54,14 @@ Lightweight devcontainer-first workspace for FEC-oriented ELT development with A
 - **[docs/architecture/dev-vs-runtime-topology.md](docs/architecture/dev-vs-runtime-topology.md)** — Explicit boundary between editor devcontainer topology and runtime Airflow service topology.
 - **[docs/architecture/data-tier-path-contract.md](docs/architecture/data-tier-path-contract.md)** — Canonical path contract for `data/raw`, `data/stage`, `data/ducklake`, `data/duckdb`, and `exports`.
 - **[docs/architecture/README.md](docs/architecture/README.md)** — Index for architecture contracts and restructuring docs.
-- **[docs/adr/README.md](docs/adr/README.md)** — Index of all Architecture Decision Records (ADRs 0001–0009). Each ADR documents a significant design choice and its consequences. ADR 0009 formalizes Duck Lake.
+- **[docs/adr/README.md](docs/adr/README.md)** — Index of all Architecture Decision Records (ADRs 0001–0010). Each ADR documents a significant design choice and its consequences. ADR 0009 formalizes Duck Lake.
+- **Docs browser** — Open Airflow and use the top-level Docs menu to browse the curated markdown set.
 - **[docs/runbooks/](docs/runbooks/)** — Operational guides and troubleshooting for common tasks.
 
 ## Notes
 
 - **Data pipeline**: Airflow downloads FEC bulk data and writes parquet files to Duck Lake surfaces (`data/ducklake/` target state, `data/duckdb/` compatibility during migration). dbt queries parquet-backed raw tables and creates views for analysis. See ADR 0009 and the data-tier path contract.
-- **Runtime control**: Use `scripts/runtime.sh` for canonical runtime lifecycle commands (`up`, `down`, `ps`, `logs`, `config`) against `compose/runtime.yml`.
+- **Runtime control**: Use `scripts/runtime.sh` for canonical runtime lifecycle commands (`up`, `down`, `start`, `stop`, `restart`, `ps`, `logs`, `config`) against `compose/runtime.yml`. `up` is fast by default and supports `--build` to force a rebuild with progress output.
 - **Schema separation**: DuckDB uses four schemas (`raw`, `staging`, `marts`, `metadata`) to keep Airflow and dbt ownership clear. See ADR 0006.
 - **Data quality**: All cleaning and QA lives in dbt (staging and marts models). Airflow is kept simple. See ADR 0004.
 - **FEC data dictionary**: Each file type has official format documentation at https://www.fec.gov/campaign-finance-data/ (see CONTEXT.md for links to specific formats).

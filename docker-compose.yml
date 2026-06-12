@@ -12,6 +12,7 @@ services:
       AIRFLOW__CORE__SQL_ALCHEMY_CONN: sqlite:////app/data/airflow.db
       AIRFLOW__CORE__AUTH_MANAGER: airflow.providers.fab.auth_manager.fab_auth_manager.FabAuthManager
       AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      AIRFLOW__CORE__PLUGINS_FOLDER: /app/plugins
       AIRFLOW_ADMIN_USERNAME: devadmin
       AIRFLOW_ADMIN_PASSWORD: devadmin
       AIRFLOW_ADMIN_EMAIL: admin@localhost
@@ -20,6 +21,10 @@ services:
     volumes:
       - ./dags:/app/dags
       - ./dbt:/app/dbt
+      - ./docs:/app/docs
+      - ./plugins:/app/plugins
+      - ./README.md:/app/README.md:ro
+      - ./CONTEXT.md:/app/CONTEXT.md:ro
       - ./data:/app/data
       - ./logs:/app/logs
       - ./scripts:/app/scripts
@@ -31,6 +36,12 @@ services:
         - path: ./dbt
           action: sync
           target: /app/dbt
+        - path: ./docs
+          action: sync
+          target: /app/docs
+        - path: ./plugins
+          action: sync
+          target: /app/plugins
         - path: ./scripts
           action: sync
           target: /app/scripts
@@ -50,6 +61,7 @@ services:
       AIRFLOW_HOME: /app
       AIRFLOW__CORE__SQL_ALCHEMY_CONN: sqlite:////app/data/airflow.db
       AIRFLOW__CORE__AUTH_MANAGER: airflow.providers.fab.auth_manager.fab_auth_manager.FabAuthManager
+      AIRFLOW__CORE__PLUGINS_FOLDER: /app/plugins
     volumes:
       - ./data:/app/data
     command: >
@@ -66,9 +78,14 @@ services:
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
       AIRFLOW__CORE__SQL_ALCHEMY_CONN: sqlite:////app/data/airflow.db
       AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      AIRFLOW__CORE__PLUGINS_FOLDER: /app/plugins
     volumes:
       - ./dags:/app/dags
       - ./dbt:/app/dbt
+      - ./docs:/app/docs
+      - ./plugins:/app/plugins
+      - ./README.md:/app/README.md:ro
+      - ./CONTEXT.md:/app/CONTEXT.md:ro
       - ./data:/app/data
       - ./logs:/app/logs
       - ./scripts:/app/scripts
@@ -77,6 +94,12 @@ services:
         - path: ./dags
           action: sync
           target: /app/dags
+        - path: ./docs
+          action: sync
+          target: /app/docs
+        - path: ./plugins
+          action: sync
+          target: /app/plugins
         - path: ./scripts
           action: sync
           target: /app/scripts

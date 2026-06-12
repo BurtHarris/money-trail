@@ -7,6 +7,7 @@ cryptography>=44.0.3
 dbt-core==1.11.11
 dbt-duckdb==1.10.1
 duckdb==1.0.0
+Markdown==3.8.2
 openlineage-python>=1.48.0
 pandas==2.2.2
 psycopg2-binary==2.9.12
