@@ -18,6 +18,8 @@ from airflow.operators.empty import EmptyOperator
 from airflow.exceptions import AirflowException
 import requests
 
+from include.fec_zip_store import build_raw_zip_path, retain_or_download_zip
+
 logger = logging.getLogger(__name__)
 
 # FEC file types to monitor
@@ -142,6 +144,12 @@ def determine_files_to_download(**context) -> str:
     ti = context["task_instance"]
     results = ti.xcom_pull(task_ids="check_all_files", key="check_results")
 
+    # Annotate each result with whether the local ZIP is absent.
+    for r in results:
+        if r["status_code"] == 200:
+            zip_path = build_raw_zip_path(r["file_type"], r["cycle"])
+            r["missing_locally"] = not zip_path.exists()
+
     files_to_download = [r for r in results if r["status_code"] == 200 and (r["changed"] or r.get("missing_locally"))]
 
     if files_to_download:
@@ -155,28 +163,38 @@ def determine_files_to_download(**context) -> str:
 
 def download_changed_files(**context):
     """
-    Download files marked for update.
-    
-    For each file:
-    1. Download ZIP from FEC URL
-    2. Write to data/duckdb/<file_type>_<cycle>.parquet
-    3. Record in metadata.load_history
-    
-    TODO: Implement actual download and parquet write logic
+    Download files marked for update, retaining existing ZIPs when unchanged.
+
+    For each file in the download list:
+    1. Compute the canonical local path: data/raw/<file_type>_<cycle>.zip
+    2. If the ZIP already exists locally and the file has not changed since
+       the last check, reuse the retained copy (no network request).
+    3. Otherwise download the ZIP from the FEC URL and save it to data/raw/.
+
+    Retained ZIPs allow loads to be re-run without re-fetching from FEC.
     """
     ti = context["task_instance"]
     files_to_download = ti.xcom_pull(task_ids="determine_files_to_download", key="files_to_download")
 
-    logger.info(f"Downloading {len(files_to_download)} FEC files...")
-
-    # TODO: Implement:
-    # - Download ZIP from FEC URL
-    # - Extract CSV from ZIP
-    # - Parse CSV and write to parquet file
-    # - Record in metadata table
+    logger.info("Processing %d FEC files...", len(files_to_download))
 
     for file_info in files_to_download:
-        logger.info(f"Downloading {file_info['file_type']}_{file_info['cycle']} from {file_info['url']}")
+        file_type = file_info["file_type"]
+        cycle = file_info["cycle"]
+        url = file_info["url"]
+        changed = file_info.get("changed", False)
+
+        zip_path, downloaded = retain_or_download_zip(
+            file_type=file_type,
+            cycle=cycle,
+            url=url,
+            changed=changed,
+        )
+
+        if downloaded:
+            logger.info(f"Downloaded {file_type}_{cycle} -> {zip_path}")
+        else:
+            logger.info(f"Reused retained ZIP for {file_type}_{cycle}: {zip_path}")
 
 
 default_args = {
