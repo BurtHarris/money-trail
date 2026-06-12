@@ -11,12 +11,17 @@ Conservative approach: Uses HTTP HEAD to avoid large downloads during checks.
 from datetime import datetime, timedelta
 from typing import Dict, List
 import logging
+import os
+from pathlib import Path
 
 from airflow import DAG
 from airflow.operators.python import PythonOperator, BranchPythonOperator
 from airflow.operators.empty import EmptyOperator
 from airflow.exceptions import AirflowException
 import requests
+
+from include.fec_download_state import DownloadStateManager
+from include.fec_zip_store import build_raw_zip_path, retain_or_download_zip
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +36,12 @@ FEC_BASE_URL = "https://www.fec.gov/files/bulk-downloads"
 
 # Default timeout for HTTP requests
 HEAD_REQUEST_TIMEOUT = 10
+DUCKDB_PATH = Path(
+    os.getenv(
+        "DUCKDB_PATH",
+        str(Path(os.getenv("DATA_DIR", "./data")) / "duckdb" / "money_trail.duckdb"),
+    )
+)
 
 
 def build_fec_url(file_type: str, cycle: int) -> str:
@@ -68,8 +79,13 @@ def check_file_change(file_type: str, cycle: int) -> Dict:
         "content_length": None,
         "changed": False,
         "error": None,
-        "checked_at": datetime.utcnow().isoformat(),
+        "checked_at": None,
     }
+    checked_at = datetime.utcnow()
+    result["checked_at"] = checked_at.isoformat()
+
+    DUCKDB_PATH.parent.mkdir(parents=True, exist_ok=True)
+    state_manager = DownloadStateManager(str(DUCKDB_PATH))
 
     try:
         response = requests.head(url, timeout=HEAD_REQUEST_TIMEOUT, allow_redirects=True)
@@ -79,10 +95,12 @@ def check_file_change(file_type: str, cycle: int) -> Dict:
             result["etag"] = response.headers.get("ETag")
             result["last_modified"] = response.headers.get("Last-Modified")
             result["content_length"] = response.headers.get("Content-Length")
-
-            # TODO: Compare against stored metadata._fec_download_state to detect changes
-            # For now, just record the observation
-            # result["changed"] = compare_with_stored_state(file_type, cycle, result)
+            result["changed"] = state_manager.detect_change(
+                file_type=file_type,
+                cycle=cycle,
+                current_etag=result["etag"],
+                current_last_modified=result["last_modified"],
+            )
 
         elif response.status_code == 404:
             result["error"] = "File not found on FEC server (404)"
@@ -95,6 +113,16 @@ def check_file_change(file_type: str, cycle: int) -> Dict:
         result["error"] = f"Request error: {str(e)}"
     except Exception as e:
         result["error"] = f"Unexpected error: {str(e)}"
+    finally:
+        state_manager.record_download_state_check(
+            file_type=file_type,
+            cycle=cycle,
+            checked_at=checked_at,
+            etag=result.get("etag"),
+            last_modified=result.get("last_modified"),
+            changed=result.get("changed", False),
+            downloaded=False,
+        )
 
     return result
 
@@ -142,6 +170,12 @@ def determine_files_to_download(**context) -> str:
     ti = context["task_instance"]
     results = ti.xcom_pull(task_ids="check_all_files", key="check_results")
 
+    # Annotate each result with whether the local ZIP is absent.
+    for r in results:
+        if r["status_code"] == 200:
+            zip_path = build_raw_zip_path(r["file_type"], r["cycle"])
+            r["missing_locally"] = not zip_path.exists()
+
     files_to_download = [r for r in results if r["status_code"] == 200 and (r["changed"] or r.get("missing_locally"))]
 
     if files_to_download:
@@ -155,28 +189,38 @@ def determine_files_to_download(**context) -> str:
 
 def download_changed_files(**context):
     """
-    Download files marked for update.
-    
-    For each file:
-    1. Download ZIP from FEC URL
-    2. Write to data/duckdb/<file_type>_<cycle>.parquet
-    3. Record in metadata.load_history
-    
-    TODO: Implement actual download and parquet write logic
+    Download files marked for update, retaining existing ZIPs when unchanged.
+
+    For each file in the download list:
+    1. Compute the canonical local path: data/raw/<file_type>_<cycle>.zip
+    2. If the ZIP already exists locally and the file has not changed since
+       the last check, reuse the retained copy (no network request).
+    3. Otherwise download the ZIP from the FEC URL and save it to data/raw/.
+
+    Retained ZIPs allow loads to be re-run without re-fetching from FEC.
     """
     ti = context["task_instance"]
     files_to_download = ti.xcom_pull(task_ids="determine_files_to_download", key="files_to_download")
 
-    logger.info(f"Downloading {len(files_to_download)} FEC files...")
-
-    # TODO: Implement:
-    # - Download ZIP from FEC URL
-    # - Extract CSV from ZIP
-    # - Parse CSV and write to parquet file
-    # - Record in metadata table
+    logger.info("Processing %d FEC files...", len(files_to_download))
 
     for file_info in files_to_download:
-        logger.info(f"Downloading {file_info['file_type']}_{file_info['cycle']} from {file_info['url']}")
+        file_type = file_info["file_type"]
+        cycle = file_info["cycle"]
+        url = file_info["url"]
+        changed = file_info.get("changed", False)
+
+        zip_path, downloaded = retain_or_download_zip(
+            file_type=file_type,
+            cycle=cycle,
+            url=url,
+            changed=changed,
+        )
+
+        if downloaded:
+            logger.info(f"Downloaded {file_type}_{cycle} -> {zip_path}")
+        else:
+            logger.info(f"Reused retained ZIP for {file_type}_{cycle}: {zip_path}")
 
 
 default_args = {

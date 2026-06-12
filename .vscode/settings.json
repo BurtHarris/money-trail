@@ -14,5 +14,6 @@
     "${workspaceFolder}"
   ],
   "python.envFile": "${workspaceFolder}/.env",
-  "task.allowAutomaticTasks": "on"
+  "task.allowAutomaticTasks": "on",
+  "terminal.integrated.cwd": "${workspaceFolder}"
 }

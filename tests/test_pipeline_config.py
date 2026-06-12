@@ -15,6 +15,32 @@ class TestPipelineConfig(unittest.TestCase):
         config_path.write_text(yaml_text, encoding="utf-8")
         return config_path
 
+    def test_valid_config_parses_cleanly(self) -> None:
+        config_path = self._write_temp_config(
+            """
+parallelism:
+  cycles: sequential
+  file_types: parallel
+styles:
+  current:
+    file_types: [indiv, cn]
+    change_detection: true
+cycles:
+  - cycle: 2024
+    style: current
+"""
+        )
+
+        config = load_config(config_path)
+        self.assertEqual(config.parallelism.cycles, "sequential")
+        self.assertEqual(config.parallelism.file_types, "parallel")
+        self.assertIn("current", config.styles)
+        self.assertEqual(config.styles["current"].file_types, ["indiv", "cn"])
+        self.assertTrue(config.styles["current"].change_detection)
+        self.assertEqual(len(config.cycles), 1)
+        self.assertEqual(config.cycles[0].cycle, 2024)
+        self.assertEqual(config.cycles[0].style.name, "current")
+
     def test_cycle_range_expands_even_years(self) -> None:
         config_path = self._write_temp_config(
             """
