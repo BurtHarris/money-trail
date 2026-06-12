@@ -46,6 +46,17 @@ If GitHub access is unavailable, continue in manual mode and ask for missing inp
 
 Always require explicit yes/no confirmation before writes.
 
+### Background-task confirmation gate (sprint slices)
+
+Routing rule for implementation requests:
+- If user intent is direct execution (`implement now`, `do it now`, `apply changes now`), execute directly in the current run.
+- If user intent is delegation (`delegate`, `background task`, `dispatch slice`), propose delegation and require explicit confirmation before dispatch.
+- Do not infer delegation only because a slice is `ready-for-agent`; default to direct execution unless delegation is explicitly requested or confirmed.
+
+Required delegation confirmation:
+- Ask: `Confirm background delegation for this sprint slice now? (yes/no)`
+- Only dispatch after an explicit `yes`.
+
 Writes allowed in v1 after confirmation:
 - Update local docs:
   - `docs/contributor-workflow.md`
@@ -97,6 +108,12 @@ Never do in v1:
 2. Require explicit trade-off (what to de-scope if needed).
 3. Preserve WIP limit and ad-hoc buffer policy.
 4. Apply labels/milestone edits only after confirmation.
+
+## Routing examples
+
+- `/scrum check` + `implement now`: run the check in-session, then ask for write confirmation only if updates are needed.
+- `/scrum adjust` + `delegate this slice`: ask `Confirm background delegation for this sprint slice now? (yes/no)` before dispatching.
+- Sprint slice marked `ready-for-agent` but user says `implement now`: keep work direct in-session; do not auto-delegate.
 
 ## Response style
 

@@ -85,6 +85,19 @@ Checkpoints each week:
 2. Wednesday check-in (5-10 min): update labels/status and adjust scope.
 3. Friday review/retro (15-20 min): close sprint, capture metrics, pick improvements.
 
+Execution routing for sprint slices:
+
+- Default path: direct execution in the current run when the user asks to "implement now" or equivalent.
+- Delegation path: use a background task only when the user explicitly asks to delegate, or explicitly confirms delegation when offered.
+- Never auto-delegate solely because an issue is `ready-for-agent`.
+- Required confirmation before delegation: `Confirm background delegation for this sprint slice now? (yes/no)`
+
+Examples aligned to `/scrum` cadence:
+
+- Monday plan: `/scrum plan` + "implement now" -> update planning artifacts directly in-session.
+- Wednesday check: `/scrum check` + "delegate this slice" -> ask for delegation confirmation, then dispatch only on explicit yes.
+- Friday close: `/scrum close` + "implement now" -> run closeout updates directly; still require write confirmation where applicable.
+
 Definition of Done (DoD) per issue:
 
 1. Code change merged and linked to the issue.
