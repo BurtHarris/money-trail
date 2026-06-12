@@ -1,3 +1,16 @@
+"""Airflow-mounted FastAPI docs browser.
+
+Serves curated repository markdown from an Airflow nav entry.
+
+References:
+- Airflow plugins:
+  https://airflow.apache.org/docs/apache-airflow/stable/authoring-and-scheduling/plugins.html
+- Airflow custom views and apps:
+  https://airflow.apache.org/docs/apache-airflow/stable/howto/custom-view-plugin.html
+- FastAPI:
+  https://fastapi.tiangolo.com/
+"""
+
 from __future__ import annotations
 
 import re
@@ -7,7 +20,7 @@ from pathlib import Path
 from typing import Iterable
 from urllib.parse import quote
 
-import markdown
+import markdown  # type: ignore[reportMissingModuleSource]
 from airflow.plugins_manager import AirflowPlugin
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import HTMLResponse
@@ -21,6 +34,13 @@ DOCS_PREFIX = "/docs-browser"
 
 @dataclass(frozen=True)
 class Document:
+    """Immutable in-memory representation of one markdown document.
+
+    References:
+    - dataclasses:
+      https://docs.python.org/3/library/dataclasses.html
+    """
+
     rel_path: str
     path: Path
     section: str
@@ -30,6 +50,13 @@ class Document:
 
 
 def curated_markdown_files() -> list[Path]:
+    """Return curated markdown files from root and docs directories.
+
+  References:
+  - pathlib.Path:
+    https://docs.python.org/3/library/pathlib.html
+    """
+
     files = [path for path in CURATED_ROOT_FILES if path.is_file()]
     if DOCS_ROOT.is_dir():
         files.extend(sorted(path for path in DOCS_ROOT.rglob("*.md") if path.is_file()))
@@ -37,6 +64,8 @@ def curated_markdown_files() -> list[Path]:
 
 
 def document_section(path: Path) -> str:
+    """Map a document path to a section label shown in the index."""
+
     relative = path.relative_to(REPO_ROOT).as_posix()
     if relative in {"README.md", "CONTEXT.md"}:
         return "Repository"
@@ -49,6 +78,8 @@ def document_section(path: Path) -> str:
 
 
 def extract_title(content: str, fallback: str) -> str:
+    """Extract the first level-1 heading, or return the fallback value."""
+
     for line in content.splitlines():
         stripped = line.strip()
         if stripped.startswith("# "):
@@ -57,6 +88,11 @@ def extract_title(content: str, fallback: str) -> str:
 
 
 def extract_summary(content: str) -> str:
+    """Extract the first post-title paragraph for list previews.
+
+  The returned summary is truncated to keep cards compact.
+    """
+
     heading_seen = False
     paragraph_lines: list[str] = []
     for line in content.splitlines():
@@ -79,6 +115,8 @@ def extract_summary(content: str) -> str:
 
 
 def collect_documents() -> list[Document]:
+    """Read curated markdown files and build `Document` records."""
+
     documents: list[Document] = []
     for path in curated_markdown_files():
         content = path.read_text(encoding="utf-8")
@@ -98,10 +136,19 @@ def collect_documents() -> list[Document]:
 
 
 def doc_lookup() -> dict[str, Document]:
+    """Build a repository-relative path lookup map for documents."""
+
     return {doc.rel_path: doc for doc in collect_documents()}
 
 
 def search_documents(documents: Iterable[Document], query: str) -> list[tuple[Document, int, str]]:
+    """Return ranked search results using simple term-frequency scoring.
+
+    References:
+    - re module:
+      https://docs.python.org/3/library/re.html
+    """
+
     terms = [term for term in re.split(r"\s+", query.strip().lower()) if term]
     if not terms:
         return [(doc, 0, "") for doc in documents]
@@ -120,6 +167,8 @@ def search_documents(documents: Iterable[Document], query: str) -> list[tuple[Do
 
 
 def document_snippet(content: str, terms: list[str], width: int = 220) -> str:
+    """Return a short snippet centered on the first matching line."""
+
     lines = content.splitlines()
     lowered_lines = [line.lower() for line in lines]
     for index, line in enumerate(lowered_lines):
@@ -137,14 +186,23 @@ def document_snippet(content: str, terms: list[str], width: int = 220) -> str:
 
 
 def markdown_to_html(content: str) -> str:
+    """Render markdown content to HTML.
+
+    References:
+    - Python-Markdown:
+      https://python-markdown.github.io/
+    """
+
     return markdown.markdown(
         content,
         extensions=["fenced_code", "tables", "toc"],
-        output_format="html5",
+        output_format="html",
     )
 
 
 def strip_first_h1(content: str) -> str:
+    """Strip the first H1 so page chrome owns the visible title."""
+
     lines = content.splitlines()
     for index, line in enumerate(lines):
         if not line.strip():
@@ -166,6 +224,13 @@ def render_page(
     doc_link: str = "../",
     show_print: bool = False,
 ) -> str:
+    """Render the full HTML shell used by index and document pages.
+
+    References:
+    - html.escape:
+      https://docs.python.org/3/library/html.html
+    """
+
     return f"""<!doctype html>
 <html lang="en">
 <head>
@@ -342,6 +407,13 @@ def render_page(
 
 
 def render_index(documents: list[Document], query: str) -> str:
+    """Render the searchable index grouped by documentation section.
+
+    References:
+    - urllib.parse.quote:
+      https://docs.python.org/3/library/urllib.parse.html
+    """
+
     matches = search_documents(documents, query)
     sections: dict[str, list[tuple[Document, int, str]]] = {}
     for item in matches:
@@ -382,6 +454,8 @@ def render_index(documents: list[Document], query: str) -> str:
 
 
 def render_document(document: Document) -> str:
+    """Render a single document page with breadcrumbs and print support."""
+
     rendered_content = markdown_to_html(strip_first_h1(document.content))
     body = (
         '<div class="card">'
@@ -404,11 +478,32 @@ app = FastAPI(title="money-trail docs")
 
 @app.get("/", response_class=HTMLResponse)
 def docs_index(q: str = Query(default="")) -> HTMLResponse:
+    """Serve docs index HTML.
+
+    References:
+    - FastAPI query parameters:
+      https://fastapi.tiangolo.com/tutorial/query-params/
+    - FastAPI custom responses:
+      https://fastapi.tiangolo.com/advanced/custom-response/
+    """
+
     return HTMLResponse(render_index(collect_documents(), q))
 
 
 @app.get("/doc/{doc_path:path}", response_class=HTMLResponse)
 def docs_page(doc_path: str) -> HTMLResponse:
+    """Serve one document by repository-relative path.
+
+    Raises:
+    - HTTPException: when the document key is not found.
+
+    References:
+    - FastAPI path parameters:
+      https://fastapi.tiangolo.com/tutorial/path-params/
+    - FastAPI HTTPException:
+      https://fastapi.tiangolo.com/tutorial/handling-errors/
+    """
+
     lookup = doc_lookup()
     document = lookup.get(doc_path)
     if document is None:
@@ -433,6 +528,13 @@ docs_app = {
 
 
 class MoneyTrailDocsPlugin(AirflowPlugin):
+    """Register docs app and nav entry with Airflow.
+
+    References:
+    - AirflowPlugin API:
+      https://airflow.apache.org/docs/apache-airflow/stable/_api/airflow/plugins_manager/index.html
+    """
+
     name = "money_trail_docs"
     fastapi_apps = [docs_app]
     external_views = [docs_external_view]

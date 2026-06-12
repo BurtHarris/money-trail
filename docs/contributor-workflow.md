@@ -78,3 +78,21 @@ Default helper behavior reuses existing host `gh auth` credentials and is sessio
 
 Windows host + devcontainer guidance is centralized here:
 - [docs/windows-devcontainer-github-auth.md](windows-devcontainer-github-auth.md)
+
+## Avoiding Save Conflicts During Agent Edits
+
+When working with an agent and your editor at the same time, you can hit:
+`Failed to save ... The content of the file is newer`.
+
+Root cause:
+- The file on disk was updated by one writer (agent/tool/formatter), while your
+  editor tab still had an older in-memory buffer.
+- This is a file version race, not typically a Pylance rewrite behavior.
+
+Safe workflow:
+1. If conflict appears, open compare and prefer the newer on-disk version unless
+   you intentionally want your unsaved tab edits.
+2. Save once after reconciliation.
+3. If diagnostics look stale, run `Developer: Reload Window`.
+4. Avoid editing/saving the same file manually while a long agent edit is in
+   progress.
