@@ -1,0 +1,74 @@
+name: Agent-ready sprint slice
+description: Create a sprint issue that is ready for an AFK coding agent to pick up.
+title: "[Agent] "
+labels:
+  - ready-for-agent
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this form when the issue is specific enough for an agent to implement without more discovery.
+
+        - Target milestone format: `Sprint YYYY-Www`
+        - Assign the current sprint milestone after opening the issue
+        - Keep scope to a single S/M/L slice that fits within 1-2 days
+  - type: input
+    id: sprint-milestone
+    attributes:
+      label: Sprint milestone
+      description: Name the weekly milestone this issue belongs to.
+      placeholder: Sprint 2026-W24
+    validations:
+      required: true
+  - type: textarea
+    id: sprint-goal
+    attributes:
+      label: Sprint goal relevance
+      description: Explain how this issue supports the sprint goal or committed scope.
+      placeholder: This helps deliver...
+    validations:
+      required: true
+  - type: dropdown
+    id: size
+    attributes:
+      label: Estimate / size
+      description: Use the repository's S/M/L sizing convention.
+      options:
+        - S
+        - M
+        - L
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance criteria
+      description: Provide implementation-ready completion criteria.
+      placeholder: |
+        - [ ] ...
+        - [ ] ...
+    validations:
+      required: true
+  - type: textarea
+    id: implementation-context
+    attributes:
+      label: Implementation context
+      description: Include files, commands, constraints, or links an agent should use.
+      placeholder: |
+        - Files to inspect:
+        - Validation commands:
+        - Constraints:
+    validations:
+      required: true
+  - type: textarea
+    id: dod-result-note
+    attributes:
+      label: Definition of Done / result note
+      description: Note how the issue will satisfy DoD and what short result note should be added before closing.
+      placeholder: |
+        - Linked PR merged
+        - Relevant tests passed
+        - Docs updated if behavior changed
+        - Closing result note will summarize what changed and what is next
+    validations:
+      required: true

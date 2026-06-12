@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Weekly sprint workflow guide
+    url: https://github.com/BurtHarris/money-trail/blob/main/docs/contributor-workflow.md
+    about: Review milestone naming, label usage, size guidance, and Definition of Done expectations.
