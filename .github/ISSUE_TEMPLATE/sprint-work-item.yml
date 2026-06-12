@@ -1,0 +1,70 @@
+name: Sprint work item
+description: Create a sprint-scoped issue for planned weekly work.
+title: "[Sprint] "
+labels:
+  - ready-for-human
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use one milestone per sprint/week in this repository.
+
+        - Target milestone format: `Sprint YYYY-Www`
+        - Assign the current sprint milestone after opening the issue
+        - Use the separate ad-hoc form only for unplanned work pulled from the weekly buffer
+  - type: input
+    id: sprint-milestone
+    attributes:
+      label: Sprint milestone
+      description: Name the weekly milestone this issue belongs to.
+      placeholder: Sprint 2026-W24
+    validations:
+      required: true
+  - type: textarea
+    id: sprint-goal
+    attributes:
+      label: Sprint goal relevance
+      description: Explain how this issue supports the current sprint goal or committed scope.
+      placeholder: This helps deliver...
+    validations:
+      required: true
+  - type: dropdown
+    id: size
+    attributes:
+      label: Estimate / size
+      description: Use the repository's S/M/L sizing convention.
+      options:
+        - S
+        - M
+        - L
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance criteria
+      description: List the outcomes required for this issue to be complete.
+      placeholder: |
+        - [ ] ...
+        - [ ] ...
+    validations:
+      required: true
+  - type: textarea
+    id: dod-result-note
+    attributes:
+      label: Definition of Done / result note
+      description: Note how the issue will satisfy DoD and what short result note should be added before closing.
+      placeholder: |
+        - Linked PR merged
+        - Relevant tests passed
+        - Docs updated if behavior changed
+        - Closing result note will summarize what changed and what is next
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Context or implementation notes
+      description: Optional links, constraints, or pointers for whoever picks up the issue.
+    validations:
+      required: false

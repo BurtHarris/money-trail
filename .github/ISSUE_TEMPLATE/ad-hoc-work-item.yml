@@ -1,0 +1,71 @@
+name: Ad-hoc work item
+description: Create unplanned sprint work pulled from the weekly ad-hoc buffer.
+title: "[Ad hoc] "
+labels:
+  - ad-hoc
+  - ready-for-human
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this form only for work that was not part of the original weekly commitment.
+
+        - Add the current sprint milestone if this work is being absorbed into the active week
+        - Keep the issue small and call out what committed work may be displaced
+  - type: input
+    id: sprint-milestone
+    attributes:
+      label: Sprint milestone
+      description: Name the weekly milestone this issue will affect.
+      placeholder: Sprint 2026-W24
+    validations:
+      required: true
+  - type: textarea
+    id: sprint-goal
+    attributes:
+      label: Sprint goal relevance
+      description: Explain why this unplanned work still belongs in the current sprint.
+      placeholder: This needs to happen now because...
+    validations:
+      required: true
+  - type: dropdown
+    id: size
+    attributes:
+      label: Estimate / size
+      description: Use the repository's S/M/L sizing convention.
+      options:
+        - S
+        - M
+        - L
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance criteria
+      description: List the outcomes required for this issue to be complete.
+      placeholder: |
+        - [ ] ...
+        - [ ] ...
+    validations:
+      required: true
+  - type: textarea
+    id: scope-impact
+    attributes:
+      label: Scope impact
+      description: Note what committed work is displaced, deferred, or still protected.
+      placeholder: This consumes the weekly ad-hoc buffer and affects...
+    validations:
+      required: true
+  - type: textarea
+    id: dod-result-note
+    attributes:
+      label: Definition of Done / result note
+      description: Note how the issue will satisfy DoD and what short result note should be added before closing.
+      placeholder: |
+        - Linked PR merged
+        - Relevant tests passed
+        - Docs updated if behavior changed
+        - Closing result note will summarize what changed and what is next
+    validations:
+      required: true
