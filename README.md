@@ -2,11 +2,25 @@
 
 Lightweight devcontainer-first workspace for FEC-oriented ELT development with Apache Airflow, OpenLineage, DuckDB, PostgreSQL metadata, and dbt.
 
+## VS Code hotkeys (layout first)
+
+- `Ctrl+K`, then `Z`: toggle Zen Mode (focus on editor)
+- `Esc`, `Esc`: exit Zen Mode
+- `F11`: toggle full screen
+- `Ctrl+B`: toggle Side Bar
+- `Ctrl+J`: toggle bottom Panel (Terminal/Problems/Output)
+- `Ctrl+\\`: split editor
+- `Ctrl+1` / `Ctrl+2` / `Ctrl+3`: focus editor group 1/2/3
+- `F5`: run selected profile with debugger (when supported)
+- `Ctrl+F5`: run selected profile without debugger
+
 ## What is included
 
 - VS Code devcontainer for Python-based data engineering work
 - Apache Airflow 3.2 with a local PostgreSQL-backed metadata database
-- Example DAG that reads from an HTTP source and writes to DuckDB and SQLite
+- Dedicated containers for Airflow webserver and scheduler, separate from the VS Code workspace container
+- **Duck Lake architecture**: Parquet files as immutable storage, DuckDB as query engine
+- FEC campaign finance data pipeline: bulk download extraction, parquet storage, dbt-based cleaning and QA
 - dbt starter project targeting DuckDB
 - OpenLineage Python and Airflow provider dependencies preinstalled
 
@@ -15,25 +29,68 @@ Lightweight devcontainer-first workspace for FEC-oriented ELT development with A
 1. Open the repository in VS Code.
 2. Reopen in Container.
 3. Wait for the post-create bootstrap to finish.
-4. Open Airflow at http://localhost:8080
+4. Start Airflow runtime services when needed:
+   - `bash scripts/runtime.sh up`
+5. Open Airflow at http://localhost:8080
    - username: `devadmin`
    - password: `devadmin`
-5. Trigger the DAG `example_http_to_warehouse`.
-6. Run dbt commands from `dbt/`, for example:
-   - `dbt debug`
-   - `dbt run`
+   - use the top-level **Docs** menu to browse and print repository markdown
+6. Trigger the DAG `fec_download_and_load` to download FEC data and populate parquet files.
+7. Run dbt commands from `dbt/`:
+   - `dbt debug` - verify DuckDB connection
+   - `dbt run` - materialize staging and marts views
+   - `dbt test` - run data quality tests
+
+### VS Code F5 run/debug
+
+- Core hotkeys are listed at the top of this document.
+- For `Run:*` terminal profiles, `F5` and `Ctrl+F5` run the same command effect.
+- Use **Run and Debug** with workspace launch configs in `.vscode/launch.json`.
+- Quick profile chooser:
+   - Airflow runtime lifecycle: `Run: Runtime Up`, `Run: Runtime Logs`, `Run: Runtime Down`
+   - Quick tests (no debugger): `Run: Tests (auto env)`
+   - Step-through Python file: `Debug: Current Python File`
+   - Step-through tests: `Debug: Pytest (workspace)` or `Debug: Pytest (current file)`
+- Where code runs:
+   - `Run: Runtime *` profiles start in your current VS Code shell, then control Airflow in Docker Compose runtime containers.
+   - `Debug:*` and `Run: Tests (auto env)` run in the same environment VS Code is attached to (devcontainer shell when attached).
+- On folder open, a workspace task prints a warning only when VS Code is not attached to the devcontainer, so non-container sessions have a visible "Reopen in Container" indicator.
+- For full profile matrix and behavior details, see [docs/developer-guide.md](docs/developer-guide.md).
 
 ## Project layout
 
 - `.devcontainer/` - container build and VS Code setup
-- `dags/` - Airflow DAGs
-- `dbt/` - dbt project and example model
-- `data/` - local DuckDB, SQLite, and raw data artifacts
+- `dags/` - Airflow DAGs (FEC download, parquet write, dbt trigger)
+- `dbt/` - dbt project with staging and marts models
+- `data/` - local data artifacts (parquet files, DuckDB, raw ZIPs)
+- `plugins/` - Airflow plugin modules, including the in-UI docs browser
 - `scripts/` - bootstrap and local startup helpers
+- `docs/` - architecture decisions (ADRs), developer guide, runbooks
+- `sql/` - analysis and QA queries
+
+## Architecture Overview
+
+**Duck Lake**: Parquet files in `data/ducklake/` are the target primary immutable storage (one file per FEC file type per cycle). During migration, compatibility surfaces in `data/duckdb/` remain available. Airflow downloads and writes parquet, DuckDB queries parquet via external tables, and dbt builds cleaning/aggregation views.
+
+**Docs browser**: Airflow exposes a top-level Docs menu that renders the curated repository markdown set and supports browser printing.
+
+### Documentation Roadmap
+
+- **[CONTEXT.md](CONTEXT.md)** — Domain glossary (Cycles, File Types, Raw Layer, Staging Schema, etc.) and system architecture terms. Start here to understand the ubiquitous language used across the project.
+- **[docs/developer-guide.md](docs/developer-guide.md)** — Developer onboarding, common commands, devcontainer vs runtime setup, and the architecture contract. Essential for contributors.
+- **[docs/architecture/repository-restructuring-plan.md](docs/architecture/repository-restructuring-plan.md)** — Target-state repository contract and phased restructuring plan tied to ADR decisions.
+- **[docs/architecture/dev-vs-runtime-topology.md](docs/architecture/dev-vs-runtime-topology.md)** — Explicit boundary between editor devcontainer topology and runtime Airflow service topology.
+- **[docs/architecture/data-tier-path-contract.md](docs/architecture/data-tier-path-contract.md)** — Canonical path contract for `data/raw`, `data/stage`, `data/ducklake`, `data/duckdb`, and `exports`.
+- **[docs/architecture/README.md](docs/architecture/README.md)** — Index for architecture contracts and restructuring docs.
+- **[docs/adr/README.md](docs/adr/README.md)** — Index of all Architecture Decision Records (ADRs 0001–0010). Each ADR documents a significant design choice and its consequences. ADR 0009 formalizes Duck Lake.
+- **Docs browser** — Open Airflow and use the top-level Docs menu to browse the curated markdown set.
+- **[docs/runbooks/](docs/runbooks/)** — Operational guides and troubleshooting for common tasks.
 
 ## Notes
 
-- This repo intentionally keeps orchestration lightweight to stabilize the development environment first.
-- OpenLineage packages are installed now; the next step can wire in a local backend such as Marquez or another collector.
-- The example HTTP source points to a public FEC developer page so the container can be validated without requiring an API key.
-- Once the container is stable, FEC ingestion code can be moved from your other repository into `dags/`, `include/`, and `dbt/models/`.
+- **Data pipeline**: Airflow downloads FEC bulk data and writes parquet files to Duck Lake surfaces (`data/ducklake/` target state, `data/duckdb/` compatibility during migration). dbt queries parquet-backed raw tables and creates views for analysis. See ADR 0009 and the data-tier path contract.
+- **Runtime control**: Use `scripts/runtime.sh` for canonical runtime lifecycle commands (`up`, `down`, `start`, `stop`, `restart`, `ps`, `logs`, `config`) against `compose/runtime.yml`. `up` is fast by default and supports `--build` to force a rebuild with progress output.
+- **Schema separation**: DuckDB uses four schemas (`raw`, `staging`, `marts`, `metadata`) to keep Airflow and dbt ownership clear. See ADR 0006.
+- **Data quality**: All cleaning and QA lives in dbt (staging and marts models). Airflow is kept simple. See ADR 0004.
+- **FEC data dictionary**: Each file type has official format documentation at https://www.fec.gov/campaign-finance-data/ (see CONTEXT.md for links to specific formats).
+- **Data normalization**: ZIP codes are truncated to 5 digits, amounts rounded to 2 decimals, and whitespace trimmed in staging models.

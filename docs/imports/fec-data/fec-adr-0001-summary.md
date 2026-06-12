@@ -1,0 +1,1 @@
+ADR 0001 — FEC Bulk Downloads Over the REST API: Use FEC bulk download ZIP files for authoritative, full-cycle snapshots rather than the rate-limited, paginated REST API.

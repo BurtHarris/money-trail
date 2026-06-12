@@ -1,0 +1,1 @@
+ADR 0005 — indiv ZIP Root Only: When loading the indiv ZIP, target the root-level full-cycle file (itcont.txt) and ignore date-range partials to avoid duplicates.

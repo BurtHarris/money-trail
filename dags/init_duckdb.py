@@ -7,6 +7,7 @@ can execute.  It is idempotent and safe to trigger repeatedly.
 from __future__ import annotations
 
 from datetime import datetime
+import os
 from pathlib import Path
 
 from airflow import DAG
@@ -14,7 +15,7 @@ from airflow.operators.python import PythonOperator
 
 from include.db_init import init_duckdb
 
-DUCKDB_PATH = Path("/workspaces/money-trail/data/duckdb/money_trail.duckdb")
+DUCKDB_PATH = Path(os.getenv('DUCKDB_PATH', str(Path(os.getenv('DATA_DIR', './data')) / 'duckdb' / 'money_trail.duckdb')))
 
 
 def _bootstrap_duckdb() -> None:

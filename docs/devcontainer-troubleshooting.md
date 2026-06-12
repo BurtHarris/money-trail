@@ -33,16 +33,17 @@ If the error persists, temporarily disable Wayland socket mounting in VS Code se
 
 - Dev Containers: Mount Wayland Socket -> false
 
-## Port conflict on PostgreSQL 5432
+## Runtime stack port conflicts
 
-If container startup fails with a message like Bind for 0.0.0.0:5432 failed: port is already allocated, another process or container is already using host port 5432.
+The devcontainer now runs only the workspace service. Airflow runtime services are started from [compose/runtime.yml](../compose/runtime.yml) (with [docker-compose.yml](../docker-compose.yml) kept as compatibility entrypoint).
 
-This repository currently maps PostgreSQL as host 5432 to container 5432:
+If runtime startup fails with a port-in-use message (for example on 8080), check current container port bindings:
 
-- Host access: localhost:5432
-- Container network access: postgres:5432
+```powershell
+bash scripts/runtime.sh ps
+```
 
-If you need a non-default host port, update [.devcontainer/docker-compose.yml](../.devcontainer/docker-compose.yml) from `5432:5432` to a free port such as `5433:5432`, then rebuild the container.
+If needed, adjust host mappings in [compose/runtime.yml](../compose/runtime.yml) and restart the runtime stack.
 
 To clean stale containers that may still hold old ports:
 

@@ -1,0 +1,111 @@
+name: money-trail
+
+services:
+  airflow:
+    build:
+      context: ..
+    container_name: money-trail-airflow
+    ports:
+      - "8080:8080"
+    environment:
+      AIRFLOW_HOME: /app
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__CORE__SQL_ALCHEMY_CONN: sqlite:////app/data/airflow.db
+      AIRFLOW__CORE__AUTH_MANAGER: airflow.providers.fab.auth_manager.fab_auth_manager.FabAuthManager
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      AIRFLOW__CORE__PLUGINS_FOLDER: /app/plugins
+      AIRFLOW_ADMIN_USERNAME: devadmin
+      AIRFLOW_ADMIN_PASSWORD: devadmin
+      AIRFLOW_ADMIN_EMAIL: admin@localhost
+      AIRFLOW_ADMIN_FIRSTNAME: Dev
+      AIRFLOW_ADMIN_LASTNAME: Admin
+    volumes:
+      - ../dags:/app/dags
+      - ../dbt:/app/dbt
+      - ../docs:/app/docs
+      - ../plugins:/app/plugins
+      - ../README.md:/app/README.md:ro
+      - ../CONTEXT.md:/app/CONTEXT.md:ro
+      - ../data:/app/data
+      - ../logs:/app/logs
+      - ../scripts:/app/scripts
+    develop:
+      watch:
+        - path: ../dags
+          action: sync
+          target: /app/dags
+        - path: ../dbt
+          action: sync
+          target: /app/dbt
+        - path: ../docs
+          action: sync
+          target: /app/docs
+        - path: ../plugins
+          action: sync
+          target: /app/plugins
+        - path: ../scripts
+          action: sync
+          target: /app/scripts
+    depends_on:
+      - init-airflow
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/v2/monitor/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  init-airflow:
+    build:
+      context: ..
+    container_name: money-trail-init
+    environment:
+      AIRFLOW_HOME: /app
+      AIRFLOW__CORE__SQL_ALCHEMY_CONN: sqlite:////app/data/airflow.db
+      AIRFLOW__CORE__AUTH_MANAGER: airflow.providers.fab.auth_manager.fab_auth_manager.FabAuthManager
+      AIRFLOW__CORE__PLUGINS_FOLDER: /app/plugins
+    volumes:
+      - ../data:/app/data
+    command: >
+      bash -c "
+        airflow db migrate &&
+        airflow users create --username devadmin --password devadmin --firstname Dev --lastname Admin --role Admin --email admin@localhost || true
+      "
+
+  scheduler:
+    build:
+      context: ..
+    container_name: money-trail-scheduler
+    environment:
+      AIRFLOW_HOME: /app
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__CORE__SQL_ALCHEMY_CONN: sqlite:////app/data/airflow.db
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      AIRFLOW__CORE__PLUGINS_FOLDER: /app/plugins
+    volumes:
+      - ../dags:/app/dags
+      - ../dbt:/app/dbt
+      - ../docs:/app/docs
+      - ../plugins:/app/plugins
+      - ../README.md:/app/README.md:ro
+      - ../CONTEXT.md:/app/CONTEXT.md:ro
+      - ../data:/app/data
+      - ../logs:/app/logs
+      - ../scripts:/app/scripts
+    develop:
+      watch:
+        - path: ../dags
+          action: sync
+          target: /app/dags
+        - path: ../docs
+          action: sync
+          target: /app/docs
+        - path: ../plugins
+          action: sync
+          target: /app/plugins
+        - path: ../scripts
+          action: sync
+          target: /app/scripts
+    command: airflow scheduler
+    depends_on:
+      - init-airflow

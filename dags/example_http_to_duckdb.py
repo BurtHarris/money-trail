@@ -12,7 +12,7 @@ from airflow import DAG
 from airflow.operators.python import PythonOperator
 from include.pipeline_config import PIPELINE_CONFIG
 
-DATA_DIR = Path("/workspaces/money-trail/data")
+DATA_DIR = Path(os.getenv("DATA_DIR", "./data"))
 RAW_DIR = DATA_DIR / "raw"
 DUCKDB_PATH = DATA_DIR / "duckdb" / "money_trail.duckdb"
 SQLITE_PATH = DATA_DIR / "money_trail.sqlite"

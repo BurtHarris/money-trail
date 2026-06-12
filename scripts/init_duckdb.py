@@ -20,8 +20,8 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from include.db_init import init_duckdb  # noqa: E402
 
-_DEFAULT_DUCKDB_PATH = "/workspaces/money-trail/data/duckdb/money_trail.duckdb"
-DUCKDB_PATH = Path(os.getenv("DUCKDB_PATH", _DEFAULT_DUCKDB_PATH))
+_DEFAULT_DUCKDB_PATH = Path(os.getenv('DATA_DIR', './data')) / 'duckdb' / 'money_trail.duckdb'
+DUCKDB_PATH = Path(os.getenv('DUCKDB_PATH', str(_DEFAULT_DUCKDB_PATH)))
 
 
 def main() -> None:

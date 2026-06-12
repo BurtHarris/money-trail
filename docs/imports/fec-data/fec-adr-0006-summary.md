@@ -1,0 +1,1 @@
+ADR 0006 — DuckDB Schema Separation: Use separate DuckDB schemas (raw, staging, marts, metadata) to make ownership explicit and avoid naming collisions between Airflow and dbt.
