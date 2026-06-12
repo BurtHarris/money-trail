@@ -1,0 +1,50 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Environment: Devcontainer hint",
+      "type": "shell",
+      "command": "if [ -f /.dockerenv ] || [ -n \"${REMOTE_CONTAINERS:-}\" ] || [ -n \"${DEVCONTAINER:-}\" ]; then exit 0; fi; echo \"WARNING: Open this workspace in the Dev Container for full tools (Command Palette -> Dev Containers: Reopen in Container).\"; exit 1",
+      "windows": {
+        "command": "if ($env:REMOTE_CONTAINERS -or $env:DEVCONTAINER -or $env:CODESPACES) { exit 0 }; Write-Host 'WARNING: Open this workspace in the Dev Container for full tools (Command Palette -> Dev Containers: Reopen in Container).'; exit 1"
+      },
+      "runOptions": {
+        "runOn": "folderOpen"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true,
+        "showReuseMessage": false
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Runtime: Up",
+      "type": "shell",
+      "command": "bash scripts/runtime.sh up",
+      "problemMatcher": []
+    },
+    {
+      "label": "Runtime: Down",
+      "type": "shell",
+      "command": "bash scripts/runtime.sh down",
+      "problemMatcher": []
+    },
+    {
+      "label": "Runtime: Logs",
+      "type": "shell",
+      "command": "bash scripts/runtime.sh logs -f",
+      "problemMatcher": []
+    },
+    {
+      "label": "Tests: Run (auto env)",
+      "type": "shell",
+      "command": "if [ -f /.dockerenv ] || [ -n \"${REMOTE_CONTAINERS:-}\" ] || [ -n \"${DEVCONTAINER:-}\" ]; then bash scripts/run-tests.sh; else bash scripts/run-tests.sh --local; fi",
+      "windows": {
+        "command": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts\\run-tests.ps1 -Local"
+      },
+      "problemMatcher": []
+    }
+  ]
+}

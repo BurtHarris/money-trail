@@ -40,6 +40,20 @@ Key locations:
 - Run dbt models: `cd dbt && dbt run`
 - Run dbt tests: `cd dbt && dbt test`
 
+## VS Code run and debug (F5)
+
+- Launch profiles are committed in `.vscode/launch.json` and work in both host and devcontainer contexts.
+- Run profiles:
+  - `Run: Runtime Up`
+  - `Run: Runtime Logs`
+  - `Run: Runtime Down`
+  - `Run: Tests (auto env)` (devcontainer shell uses standard test path; host uses local lightweight mode)
+- Debug profiles:
+  - `Debug: Current Python File`
+  - `Debug: Pytest (workspace)`
+  - `Debug: Pytest (current file)`
+- A folder-open task in `.vscode/tasks.json` prints a warning when VS Code is not attached to a devcontainer, so non-container sessions (including agent-mode opens) get an explicit prompt to switch.
+
 See docs/runbooks/README.md for more operational notes.
 
 ## Architecture contract

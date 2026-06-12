@@ -29,6 +29,15 @@ Lightweight devcontainer-first workspace for FEC-oriented ELT development with A
    - `dbt run` - materialize staging and marts views
    - `dbt test` - run data quality tests
 
+### VS Code F5 run/debug
+
+- Use **Run and Debug** (F5) with workspace-provided launch configs in `.vscode/launch.json`.
+- Included run profiles:
+  - Runtime up/logs/down (`scripts/runtime.sh`)
+  - Tests (auto-selects devcontainer vs local lightweight mode)
+  - Python and pytest debug profiles (`debugpy`)
+- On folder open, a workspace task prints a warning when VS Code is not attached to the devcontainer, so agent-mode/local sessions have a visible "Reopen in Container" indicator.
+
 ## Project layout
 
 - `.devcontainer/` - container build and VS Code setup
