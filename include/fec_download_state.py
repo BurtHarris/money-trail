@@ -1,14 +1,4 @@
-"""
-FEC Download State Management
-
-Utilities for tracking FEC file download state, daily observations, and change detection.
-Implements ADR 0008 (Daily Observation Collector) and ADR 0002 (Download State).
-
-Tables:
-- metadata._fec_download_state: Full history of file metadata (ETag, Last-Modified, etc.)
-- metadata._fec_daily_observation: One row per file check per day
-- metadata.load_history: One row per successful load to parquet
-"""
+"""FEC download state management utilities."""
 
 from datetime import datetime
 from typing import Dict, List, Optional
@@ -37,20 +27,18 @@ class DownloadStateManager:
         conn = duckdb.connect(self.duckdb_path, read_only=False)
 
         try:
-            # Table: Download state history (one row per check, ever)
+            conn.execute("CREATE SCHEMA IF NOT EXISTS metadata")
+
+            # Table: Download state history (one row per check, append-only)
             conn.execute("""
                 CREATE TABLE IF NOT EXISTS metadata._fec_download_state (
-                    state_id BIGINT PRIMARY KEY,
-                    file_type VARCHAR,
+                    checked_at TIMESTAMP,
                     cycle INTEGER,
-                    url VARCHAR,
-                    probe_time TIMESTAMP,
-                    http_status INTEGER,
+                    file_type VARCHAR,
                     etag VARCHAR,
                     last_modified VARCHAR,
-                    content_length BIGINT,
                     changed BOOLEAN,
-                    checked_at TIMESTAMP
+                    downloaded BOOLEAN
                 )
             """)
 
@@ -88,6 +76,32 @@ class DownloadStateManager:
             """)
 
             logger.info("Metadata schema ensured")
+        finally:
+            conn.close()
+
+    def record_download_state_check(
+        self,
+        file_type: str,
+        cycle: int,
+        checked_at: datetime,
+        etag: Optional[str],
+        last_modified: Optional[str],
+        changed: bool,
+        downloaded: bool,
+    ) -> None:
+        """Append one row to metadata._fec_download_state for each check."""
+        import duckdb
+
+        conn = duckdb.connect(self.duckdb_path, read_only=False)
+        try:
+            conn.execute(
+                """
+                INSERT INTO metadata._fec_download_state
+                    (checked_at, cycle, file_type, etag, last_modified, changed, downloaded)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                [checked_at, cycle, file_type, etag, last_modified, changed, downloaded],
+            )
         finally:
             conn.close()
 
@@ -159,10 +173,10 @@ class DownloadStateManager:
         try:
             result = conn.execute(
                 """
-                SELECT etag, last_modified, http_status, changed
+                SELECT checked_at, etag, last_modified, changed, downloaded
                 FROM metadata._fec_download_state
                 WHERE file_type = ? AND cycle = ?
-                ORDER BY probe_time DESC
+                ORDER BY checked_at DESC
                 LIMIT 1
                 """,
                 [file_type, cycle],
@@ -170,17 +184,24 @@ class DownloadStateManager:
 
             if result:
                 return {
-                    "etag": result[0],
-                    "last_modified": result[1],
-                    "http_status": result[2],
+                    "checked_at": result[0],
+                    "etag": result[1],
+                    "last_modified": result[2],
                     "changed": result[3],
+                    "downloaded": result[4],
                 }
             return None
 
         finally:
             conn.close()
 
-    def detect_change(self, file_type: str, cycle: int, current_etag: str, current_last_modified: str) -> bool:
+    def detect_change(
+        self,
+        file_type: str,
+        cycle: int,
+        current_etag: Optional[str],
+        current_last_modified: Optional[str],
+    ) -> bool:
         """
         Detect if file has changed since last check.
         
