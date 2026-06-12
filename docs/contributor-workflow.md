@@ -50,6 +50,95 @@ Workflow details:
 
 The files under docs/agents are the source of truth for this repo's skill behavior. Update them if issue workflow, labels, or domain-doc layout changes.
 
+## Sprint operating model (weekly)
+
+This repository uses a lightweight sprint-oriented workflow.
+
+- Sprint length: 1 week
+- Planning unit: one issue should fit 1-2 days of effort
+- Estimation buckets: `S` (up to 0.5 day), `M` (1 day), `L` (2 days)
+- Scope control: fixed weekly plan with a reserved ad-hoc buffer
+- Capacity model: plan `4+1` days each week (4 committed + 1 ad-hoc)
+- WIP limit: maximum 2 issues labeled `in-progress` at any time
+- Scope container: weekly GitHub Milestone only (no project board required)
+
+Weekly milestone conventions:
+
+- Add a one-sentence sprint goal in milestone description:
+   - `This sprint delivers <user-visible outcome> by completing <2-4 key issues>.`
+- Keep committed work in the milestone and mark unplanned items with `ad-hoc`.
+- If ad-hoc buffer is unused by Thursday, pull the next smallest ready issue.
+
+Checkpoints each week:
+
+1. Monday planning (15-20 min): commit scope and set milestone.
+2. Wednesday check-in (5-10 min): update labels/status and adjust scope.
+3. Friday review/retro (15-20 min): close sprint, capture metrics, pick improvements.
+
+Definition of Done (DoD) per issue:
+
+1. Code change merged and linked to the issue.
+2. Relevant tests pass (`bash scripts/run-tests.sh` or focused pytest).
+3. Docs updated only when behavior or commands change.
+4. Issue includes a short result note (what changed, what is next).
+
+Release policy:
+
+- Weekly batch release cadence (not continuous).
+- Friday release gate uses two checks:
+   1. All sprint issues meet DoD.
+   2. Test command passes.
+
+Sprint metrics:
+
+1. Commitment reliability = completed committed issues / committed issues.
+2. Flow reliability = number of carryover issues.
+3. Cycle time (simple) = issue start (`in-progress`) to issue close, in calendar days.
+
+Weekly milestone template (copy/paste)
+
+Use this in the milestone description each Monday.
+
+Title:
+Sprint YYYY-Www
+
+Goal:
+This sprint delivers <user-visible outcome> by completing <2-4 key issues>.
+
+Cadence and guardrails:
+- Sprint length: 1 week
+- Capacity: 4 committed days + 1 ad-hoc day
+- WIP limit: max 2 issues with `in-progress`
+- Slice size: each issue is S/M/L and should fit 1-2 days
+
+Committed scope:
+- #<issue-number> <issue title> (S|M|L)
+- #<issue-number> <issue title> (S|M|L)
+- #<issue-number> <issue title> (S|M|L)
+
+Ad-hoc buffer policy:
+- Up to 1 day of unplanned work this sprint
+- Mark unplanned work with `ad-hoc`
+- If unused by Thursday, pull the smallest ready issue
+
+Definition of Done reminder:
+1. Merged and linked to issue.
+2. Relevant tests pass.
+3. Docs updated when behavior/commands changed.
+4. Short issue result note added.
+
+Friday closeout:
+- Release gate
+   - DoD complete for sprint issues
+   - Test command passes
+- Metrics
+   - Commitment reliability: <completed>/<committed>
+   - Flow reliability: <carryover count>
+   - Cycle time trend: <average calendar days>
+- Process experiments for next sprint
+   - <change 1>
+   - <change 2>
+
 ## Skill quick reference
 
 | Skill | Use it when | Primary inputs | Typical output |
@@ -58,6 +147,7 @@ The files under docs/agents are the source of truth for this repo's skill behavi
 | to-issues | A large plan should be broken into executable slices | Plan or proposal text, scope boundaries, constraints | Multiple scoped implementation issues |
 | to-prd | You need a product-style spec from discussion context | Feature idea, goals, non-goals, success criteria | A structured PRD issue or document |
 | diagnose | A bug or performance regression must be investigated | Repro steps, logs or errors, expected vs actual behavior | Repro steps, root cause, and fix path |
+| scrum | You want weekly sprint planning, mid-week checks, closeout, or scope adjustment with recommendations | Current sprint context, issues, milestone state, constraints | Recommended scrum action, confirmations, optional docs/issue updates |
 | tdd | You want to implement behavior test-first | Acceptance criteria, edge cases, target module | Tests plus implementation in red-green-refactor flow |
 | improve-codebase-architecture | You want refactoring opportunities grounded in domain language | Existing architecture, pain points, domain docs | Architectural recommendations and candidate refactors |
 | grill-with-docs | You want to pressure-test terminology and decisions and update docs | Proposed design or plan, glossary terms, ADR context | Clarified terms plus CONTEXT or ADR updates |

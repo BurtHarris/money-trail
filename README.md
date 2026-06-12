@@ -2,6 +2,18 @@
 
 Lightweight devcontainer-first workspace for FEC-oriented ELT development with Apache Airflow, OpenLineage, DuckDB, PostgreSQL metadata, and dbt.
 
+## VS Code hotkeys (layout first)
+
+- `Ctrl+K`, then `Z`: toggle Zen Mode (focus on editor)
+- `Esc`, `Esc`: exit Zen Mode
+- `F11`: toggle full screen
+- `Ctrl+B`: toggle Side Bar
+- `Ctrl+J`: toggle bottom Panel (Terminal/Problems/Output)
+- `Ctrl+\\`: split editor
+- `Ctrl+1` / `Ctrl+2` / `Ctrl+3`: focus editor group 1/2/3
+- `F5`: run selected profile with debugger (when supported)
+- `Ctrl+F5`: run selected profile without debugger
+
 ## What is included
 
 - VS Code devcontainer for Python-based data engineering work
@@ -31,12 +43,19 @@ Lightweight devcontainer-first workspace for FEC-oriented ELT development with A
 
 ### VS Code F5 run/debug
 
-- Use **Run and Debug** (F5) with workspace-provided launch configs in `.vscode/launch.json`.
-- Included run profiles:
-  - Runtime up/logs/down (`scripts/runtime.sh`)
-  - Tests (auto-selects devcontainer vs local lightweight mode)
-  - Python and pytest debug profiles (`debugpy`)
-- On folder open, a workspace task prints a warning when VS Code is not attached to the devcontainer, so agent-mode/local sessions have a visible "Reopen in Container" indicator.
+- Core hotkeys are listed at the top of this document.
+- For `Run:*` terminal profiles, `F5` and `Ctrl+F5` run the same command effect.
+- Use **Run and Debug** with workspace launch configs in `.vscode/launch.json`.
+- Quick profile chooser:
+   - Airflow runtime lifecycle: `Run: Runtime Up`, `Run: Runtime Logs`, `Run: Runtime Down`
+   - Quick tests (no debugger): `Run: Tests (auto env)`
+   - Step-through Python file: `Debug: Current Python File`
+   - Step-through tests: `Debug: Pytest (workspace)` or `Debug: Pytest (current file)`
+- Where code runs:
+   - `Run: Runtime *` profiles start in your current VS Code shell, then control Airflow in Docker Compose runtime containers.
+   - `Debug:*` and `Run: Tests (auto env)` run in the same environment VS Code is attached to (devcontainer shell when attached).
+- On folder open, a workspace task prints a warning only when VS Code is not attached to the devcontainer, so non-container sessions have a visible "Reopen in Container" indicator.
+- For full profile matrix and behavior details, see [docs/developer-guide.md](docs/developer-guide.md).
 
 ## Project layout
 

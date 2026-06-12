@@ -2,6 +2,18 @@
 
 This guide orients contributors to the repository structure, devcontainer vs runtime, and common developer commands.
 
+## VS Code hotkeys (layout first)
+
+- `Ctrl+K`, then `Z`: toggle Zen Mode (focus on editor)
+- `Esc`, `Esc`: exit Zen Mode
+- `F11`: toggle full screen
+- `Ctrl+B`: toggle Side Bar
+- `Ctrl+J`: toggle bottom Panel (Terminal/Problems/Output)
+- `Ctrl+\\`: split editor
+- `Ctrl+1` / `Ctrl+2` / `Ctrl+3`: focus editor group 1/2/3
+- `F5`: run selected profile with debugger (when supported)
+- `Ctrl+F5`: run selected profile without debugger
+
 **Quick Links**: See [README.md](../README.md) for project overview. See [CONTEXT.md](../CONTEXT.md) for domain glossary and architecture terminology. See [docs/architecture/repository-restructuring-plan.md](./architecture/repository-restructuring-plan.md) for restructuring target-state contract. See [docs/architecture/dev-vs-runtime-topology.md](./architecture/dev-vs-runtime-topology.md) for environment boundaries. See [docs/architecture/data-tier-path-contract.md](./architecture/data-tier-path-contract.md) for data path ownership rules. See [docs/adr/README.md](./adr/README.md) for all Architecture Decision Records.
 
 For complete domain terminology (FEC cycles, file types, layers, etc.), see [CONTEXT.md](../../CONTEXT.md).
@@ -42,17 +54,29 @@ Key locations:
 
 ## VS Code run and debug (F5)
 
-- Launch profiles are committed in `.vscode/launch.json` and work in both host and devcontainer contexts.
-- Run profiles:
-  - `Run: Runtime Up`
-  - `Run: Runtime Logs`
-  - `Run: Runtime Down`
-  - `Run: Tests (auto env)` (devcontainer shell uses standard test path; host uses local lightweight mode)
-- Debug profiles:
-  - `Debug: Current Python File`
-  - `Debug: Pytest (workspace)`
-  - `Debug: Pytest (current file)`
-- A folder-open task in `.vscode/tasks.json` prints a warning when VS Code is not attached to a devcontainer, so non-container sessions (including agent-mode opens) get an explicit prompt to switch.
+Core hotkeys are listed at the top of this document.
+- For `Run:*` terminal profiles, `F5` and `Ctrl+F5` run the same command effect (non-debug terminal launch).
+
+Launch profiles are committed in `.vscode/launch.json` and run in the environment that VS Code is attached to (host shell or devcontainer shell).
+
+Best-practice chooser:
+- Use `Run: Runtime Up/Logs/Down` for Airflow service lifecycle.
+- Use `Run: Tests (auto env)` for quick non-debug test runs.
+- Use `Debug:*` profiles for Python code and tests you want to step through.
+
+Execution model by profile:
+
+| Profile | Runs where command starts | Runs where workload actually executes | Best use |
+|---|---|---|---|
+| `Run: Runtime Up` | Current VS Code shell (devcontainer if attached) | Docker Compose runtime containers from `compose/runtime.yml` | Start Airflow runtime stack |
+| `Run: Runtime Logs` | Current VS Code shell | Docker Compose runtime containers | Tail runtime logs |
+| `Run: Runtime Down` | Current VS Code shell | Docker Compose runtime containers | Stop runtime stack |
+| `Run: Tests (auto env)` | Current VS Code shell | Same shell (devcontainer path inside container, local path on host) | Fast test run without debugger |
+| `Debug: Current Python File` | Current VS Code shell | Python process in same shell under `debugpy` | Step-through debugging for one file |
+| `Debug: Pytest (workspace)` | Current VS Code shell | Pytest process in same shell under `debugpy` | Debug multiple tests |
+| `Debug: Pytest (current file)` | Current VS Code shell | Pytest process in same shell under `debugpy` | Debug one test file |
+
+A folder-open task in `.vscode/tasks.json` prints a warning only when VS Code is not attached to a devcontainer, so non-container sessions (including agent-mode opens) get an explicit prompt to switch.
 
 See docs/runbooks/README.md for more operational notes.
 

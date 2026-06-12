@@ -12,9 +12,24 @@
         "runOn": "folderOpen"
       },
       "presentation": {
-        "reveal": "always",
+        "reveal": "silent",
+        "echo": false,
         "panel": "dedicated",
         "clear": true,
+        "showReuseMessage": false
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Docker: Ensure Running",
+      "type": "shell",
+      "command": "docker info > /dev/null 2>&1 && exit 0; echo 'Docker daemon not running. Please start Docker and retry.'; exit 1",
+      "windows": {
+        "command": "if (docker info 2>$null) { exit 0 }; $dd = 'C:\\Program Files\\Docker\\Docker\\Docker Desktop.exe'; if (-not (Test-Path $dd)) { Write-Error 'Docker Desktop not found. Please start Docker manually.'; exit 1 }; Write-Host 'Starting Docker Desktop...'; Start-Process $dd; $timeout = 120; $interval = 3; while ($timeout -gt 0) { Start-Sleep $interval; $timeout -= $interval; if (docker info 2>$null) { Write-Host 'Docker is ready.'; exit 0 } }; Write-Error 'Docker Desktop did not become ready in time.'; exit 1"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
         "showReuseMessage": false
       },
       "problemMatcher": []
@@ -23,6 +38,7 @@
       "label": "Runtime: Up",
       "type": "shell",
       "command": "bash scripts/runtime.sh up",
+      "dependsOn": ["Docker: Ensure Running"],
       "problemMatcher": []
     },
     {
