@@ -6,7 +6,8 @@
       "type": "node-terminal",
       "request": "launch",
       "command": "bash scripts/runtime.sh up",
-      "cwd": "${workspaceFolder}"
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Docker: Ensure Running"
     },
     {
       "name": "Run: Runtime Logs",
