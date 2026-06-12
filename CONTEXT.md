@@ -1,8 +1,12 @@
-# Money Trail
+# Money Trail Context
 
 FEC campaign finance data pipeline: bulk download extraction, DuckDB loading, and dbt-based cleaning and QA, orchestrated by Apache Airflow.
 
-## Language
+**Quick Links**: See [README.md](README.md) for project overview and setup. See [docs/developer-guide.md](docs/developer-guide.md) for developer onboarding and common commands. See [docs/architecture/repository-restructuring-plan.md](docs/architecture/repository-restructuring-plan.md) for restructuring phases. See [docs/architecture/data-tier-path-contract.md](docs/architecture/data-tier-path-contract.md) for data path ownership. See [docs/adr/README.md](docs/adr/README.md) for all Architecture Decision Records.
+
+See [FEC Campaign Finance Data](#fec-campaign-finance-data) for domain terms. See [Architecture & Ownership](#architecture--ownership) for system and implementation terms. For developer onboarding and the architecture contract, see [docs/developer-guide.md](docs/developer-guide.md).
+
+### FEC Campaign Finance Data
 
 **Cycle**:
 A two-year FEC election cycle identified by the ending even year (e.g., `2024` covers 2023–2024). All file downloads and raw tables are partitioned by cycle.
@@ -63,3 +67,48 @@ _Avoid_: extract then load, unzip
 **Schema File**:
 A Python module under `include/fec_schemas/` (e.g., `indiv.py`) that defines an ordered list of `FECColumn` entries, each carrying the FEC-assigned raw column name, a readable alias, and a `pyarrow` type. The Raw Table uses FEC names; dbt staging models apply the readable aliases. Single source of truth for both.
 _Avoid_: data dictionary, column map, schema YAML
+
+### Architecture & Ownership
+
+**Duck Lake**:
+Parquet files in `data/ducklake/` are the target primary immutable storage for FEC data (one file per cycle per file type, named `<file_type>_<cycle>.parquet`). During migration, `data/duckdb/` remains a compatibility/query surface. DuckDB queries parquet via external tables and views, serving as the query engine rather than source of truth. See ADR 0009 and the data-tier path contract.
+_Avoid_: "DuckDB lake," "database tables"
+
+**Raw Schema**:
+DuckDB external tables in the `raw` schema that reference parquet files. Named `raw_<file_type>_<cycle>` (e.g., `raw_indiv_2024`). Owned by Airflow (parquet files are written and managed by Airflow); queried by dbt. See ADR 0009, ADR 0006.
+_Avoid_: staging (reserved for dbt), landing zone
+
+**Staging Schema**:
+dbt-managed DuckDB views in the `staging` schema that clean, alias, and type-coerce raw external tables. Named `stg_<file_type>` (e.g., `stg_indiv`). Includes date parsing, amount formatting, null handling, ZIP code truncation to 5 digits, whitespace trimming, and FEC column name → readable alias mapping. Views union all cycles. Owned by dbt. See ADR 0004 and ADR 0009.
+_Avoid_: raw staging, intermediate tables
+
+**Marts Schema**:
+dbt-managed DuckDB views in the `marts` schema for analytical consumption. Includes Cross-Cycle Views that aggregate or filter staging views. See ADR 0009, ADR 0006.
+_Avoid_: final tables, analytics layer
+
+**Metadata Schema**:
+DuckDB tables in the `metadata` schema holding Airflow operational state: download state, daily observations, load history. Owned exclusively by Airflow. See ADR 0007, ADR 0008.
+_Avoid_: system tables, internal tracking
+
+**Runtime Verb**:
+A canonical lifecycle command exposed by `scripts/runtime.sh` and aligned to Docker Compose verbs: `up`, `down`, `start`, `stop`, `restart`, plus operational commands `ps`, `logs`, and `config`. Used to manage Airflow runtime services consistently in local development.
+_Avoid_: ad-hoc docker command, manual compose workflow
+
+## References
+
+- **FEC Data Documentation**: https://www.fec.gov/data/browse-data/?tab=bulk-data
+- **FEC Technical Specifications**: https://www.fec.gov/campaign-finance-data/technical-specifications/
+- **FEC Data Catalog**: https://www.fec.gov/campaign-finance-data/
+- **FEC File Format Specifications**:
+  - [Individual Contributions (indiv)](https://www.fec.gov/campaign-finance-data/individual-contributions-file-description/)
+  - [Candidate Master (cn)](https://www.fec.gov/campaign-finance-data/candidate-master-file-description/)
+  - [Committee Master (cm)](https://www.fec.gov/campaign-finance-data/committee-master-file-description/)
+  - [Candidate-Committee Linkage (ccl)](https://www.fec.gov/campaign-finance-data/candidate-committee-linkage-file-description/)
+  - [Committee-to-Committee Transfers (oth)](https://www.fec.gov/campaign-finance-data/committee-to-committee-transfers-file-description/)
+  - [Contributions to Candidates (pas2)](https://www.fec.gov/campaign-finance-data/contributions-candidates-file-description/)
+  - [Operating Expenditures (oppexp)](https://www.fec.gov/campaign-finance-data/operating-expenditures-file-description/)
+  - [All Candidates Financial Summary (weball)](https://www.fec.gov/campaign-finance-data/all-candidates-file-description/)
+- **Architecture Decisions**: See `docs/adr/` (ADR 0001–0010)
+  - ADR 0002: Download State tracking
+  - ADR 0008: Daily Observation Collector
+  - ADR 0009: Duck Lake architecture (supersedes aspects of 0004, 0006)

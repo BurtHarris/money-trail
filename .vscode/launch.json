@@ -1,0 +1,83 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Run: Runtime Up",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "bash scripts/runtime.sh up",
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "Run: Runtime Logs",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "bash scripts/runtime.sh logs -f",
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "Run: Runtime Down",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "bash scripts/runtime.sh down",
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "Run: Tests (auto env)",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "if [ -f /.dockerenv ] || [ -n \"${REMOTE_CONTAINERS:-}\" ] || [ -n \"${DEVCONTAINER:-}\" ]; then bash scripts/run-tests.sh; else bash scripts/run-tests.sh --local; fi",
+      "windows": {
+        "command": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts\\run-tests.ps1 -Local"
+      },
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "Debug: Current Python File",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${file}",
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}",
+      "python": "${command:python.interpreterPath}",
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}"
+      },
+      "justMyCode": false
+    },
+    {
+      "name": "Debug: Pytest (workspace)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pytest",
+      "args": [
+        "-q",
+        "tests"
+      ],
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}",
+      "python": "${command:python.interpreterPath}",
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}"
+      },
+      "justMyCode": false
+    },
+    {
+      "name": "Debug: Pytest (current file)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pytest",
+      "args": [
+        "-q",
+        "${file}"
+      ],
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}",
+      "python": "${command:python.interpreterPath}",
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}"
+      },
+      "justMyCode": false
+    }
+  ]
+}

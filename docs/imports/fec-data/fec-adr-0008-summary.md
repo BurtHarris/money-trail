@@ -1,0 +1,1 @@
+ADR 0008 — Daily HEAD Observation Collector: Run a telemetry DAG that records daily HTTP HEAD observations for all configured file-type/cycle pairs, storing successes and failures in DuckDB metadata for analysis and backfill.

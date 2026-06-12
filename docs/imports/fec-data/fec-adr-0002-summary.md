@@ -1,0 +1,1 @@
+ADR 0002 — Download State in DuckDB: Persist HEAD-check state and observation history in DuckDB metadata tables (not Airflow Variables) to keep state queryable and durable.

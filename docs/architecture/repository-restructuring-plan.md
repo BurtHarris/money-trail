@@ -1,7 +1,7 @@
-# Repository restructuring plan for ADR 0001 and ADR 0002
+# Repository restructuring contract and scaffolding plan
 
 - **Date:** 2026-06-11
-- **Status:** Draft planning note
+- **Status:** Active (Issue #33, phase 1)
 
 ## Goals
 
@@ -12,6 +12,16 @@ Align `money-trail` with the current architecture direction:
 3. Prefer Airflow-native orchestration for ELT.
 4. Support notebook-style analysis as a first-class workflow.
 5. Clarify storage tiers and Windows host access points.
+
+## Target-state contract
+
+This plan defines the target operating contract for repo layout and ownership:
+
+1. **Orchestration contract:** Airflow owns ingest/load orchestration and metadata operations; per-file-type failure isolation remains required (ADR 0003, ADR 0008).
+2. **Storage contract:** Duck Lake parquet artifacts remain immutable primary storage; DuckDB remains query engine and schema host (ADR 0009).
+3. **Transformation contract:** dbt owns staging/marts cleaning, transformations, and quality tests (ADR 0004, ADR 0006).
+4. **Environment contract:** `.devcontainer/` stays developer-focused; runtime topology is defined separately in compose/runtime definitions (ADR 0001).
+5. **Path contract:** data tiers stay explicit and documented: `data/raw/`, `data/stage/`, `data/ducklake/`, `data/duckdb/` (compatibility/query surfaces), and host-facing `exports/`.
 
 ## Recommended top-level structure
 
@@ -88,7 +98,7 @@ Align this with ADR 0002:
 - `data/raw/` for downloads and source artifacts
 - `data/stage/` for rebuildable intermediate state
 - `data/ducklake/` for surfaced analytical state
-- `data/published/` for published-but-repo-local derived outputs
+- `data/duckdb/` for transition/compatibility DuckDB files and query surfaces while path migration is in progress
 
 If `data/duckdb/` already exists in tooling assumptions, keep it temporarily and migrate deliberately.
 
@@ -113,16 +123,20 @@ Reshape docs around architecture and operation:
 - Add this restructuring plan
 - Create placeholder directories with README notes where useful
 - Stage selected `fec-data` documentation into `docs/imports/fec-data/`
+- Link this plan from top-level docs so new contributors can discover restructuring intent quickly
 
 ### Phase 2: Runtime/development split
 - Move runtime-specific compose definitions into `compose/`
 - Keep `.devcontainer/` focused on development experience
 - Document how the devcontainer connects to runtime services
+- Maintain explicit topology contract in `docs/architecture/dev-vs-runtime-topology.md`
 
 ### Phase 3: Data tier clarification
 - Establish `data/raw/`, `data/stage/`, `data/ducklake/`, and `exports/`
 - Update scripts/configs/docs to use the new paths
 - Decide which existing paths remain as compatibility shims
+- Maintain explicit path ownership contract in `docs/architecture/data-tier-path-contract.md`
+- Maintain migration inventory in `docs/architecture/data-path-reference-inventory.md`
 
 ### Phase 4: Airflow-native ELT refinement
 - Move orchestration concerns into Airflow DAGs and reusable modules

@@ -1,0 +1,1 @@
+ADR 0004 — dbt Owns Cleaning and QA: Keep Airflow purely for extraction; delegate all cleaning, transformations, and tests to dbt models triggered after loads.

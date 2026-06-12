@@ -5,6 +5,7 @@ mkdir -p logs
 
 export AIRFLOW_HOME="${AIRFLOW_HOME:-/workspaces/money-trail/.airflow}"
 export AIRFLOW__CORE__DAGS_FOLDER="${AIRFLOW__CORE__DAGS_FOLDER:-/workspaces/money-trail/dags}"
+export AIRFLOW__CORE__PLUGINS_FOLDER="${AIRFLOW__CORE__PLUGINS_FOLDER:-/workspaces/money-trail/plugins}"
 if [[ -z "${AIRFLOW__CORE__EXECUTOR:-}" || "${AIRFLOW__CORE__EXECUTOR}" == "SequentialExecutor" ]]; then
   export AIRFLOW__CORE__EXECUTOR="LocalExecutor"
 fi
