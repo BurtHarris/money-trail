@@ -23,8 +23,6 @@ services:
       - ./dbt:/app/dbt
       - ./docs:/app/docs
       - ./plugins:/app/plugins
-      - ./README.md:/app/README.md:ro
-      - ./CONTEXT.md:/app/CONTEXT.md:ro
       - ./data:/app/data
       - ./logs:/app/logs
       - ./scripts:/app/scripts
@@ -84,8 +82,6 @@ services:
       - ./dbt:/app/dbt
       - ./docs:/app/docs
       - ./plugins:/app/plugins
-      - ./README.md:/app/README.md:ro
-      - ./CONTEXT.md:/app/CONTEXT.md:ro
       - ./data:/app/data
       - ./logs:/app/logs
       - ./scripts:/app/scripts

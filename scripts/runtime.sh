@@ -26,14 +26,17 @@ require_docker_access() {
 wait_for_airflow_health() {
   local attempts=0
   while (( attempts < HEALTH_TIMEOUT_SECONDS )); do
-    if curl -sSf "${AIRFLOW_HEALTH_URL}" >/dev/null 2>&1; then
+    # Poll Docker's own healthcheck result to avoid devcontainer network isolation.
+    local status
+    status=$(docker inspect --format '{{.State.Health.Status}}' money-trail-airflow 2>/dev/null || true)
+    if [[ "${status}" == "healthy" ]]; then
       return 0
     fi
     sleep 1
     attempts=$((attempts + 1))
   done
 
-  echo "ERROR: Airflow health endpoint not ready: ${AIRFLOW_HEALTH_URL}" >&2
+  echo "ERROR: Airflow health endpoint not ready after ${HEALTH_TIMEOUT_SECONDS}s" >&2
   docker compose -f "${COMPOSE_FILE}" ps >&2
   exit 1
 }
