@@ -27,3 +27,11 @@ venv/
 # Local editor/OS noise
 .DS_Store
 Thumbs.db
+
+# Ignore local virtual environments
+.venv
+.venv-tests
+
+# Ignore local virtual environments
+.venv
+.venv-tests
