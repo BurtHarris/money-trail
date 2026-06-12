@@ -57,6 +57,7 @@ This repository uses a lightweight sprint-oriented workflow.
 - Sprint length: 1 week
 - Planning unit: one issue should fit 1-2 days of effort
 - Estimation buckets: `S` (up to 0.5 day), `M` (1 day), `L` (2 days)
+- Optional label mirror: `size:S`, `size:M`, `size:L`
 - Scope control: fixed weekly plan with a reserved ad-hoc buffer
 - Capacity model: plan `4+1` days each week (4 committed + 1 ad-hoc)
 - WIP limit: maximum 2 issues labeled `in-progress` at any time
@@ -64,10 +65,19 @@ This repository uses a lightweight sprint-oriented workflow.
 
 Weekly milestone conventions:
 
+- Name the milestone `Sprint YYYY-Www` and assign every committed sprint issue to it.
 - Add a one-sentence sprint goal in milestone description:
    - `This sprint delivers <user-visible outcome> by completing <2-4 key issues>.`
 - Keep committed work in the milestone and mark unplanned items with `ad-hoc`.
 - If ad-hoc buffer is unused by Thursday, pull the next smallest ready issue.
+
+GitHub issue intake defaults:
+
+- Use `.github/ISSUE_TEMPLATE/sprint-work-item.yml` for normal committed work. It defaults the issue to `ready-for-human`.
+- Use `.github/ISSUE_TEMPLATE/agent-ready-sprint-slice.yml` when the issue is already specific enough for `ready-for-agent`.
+- Use `.github/ISSUE_TEMPLATE/ad-hoc-work-item.yml` for unplanned work pulled from the weekly buffer. It defaults the issue to `ad-hoc` and `ready-for-human`.
+- Use `in-progress` only when someone has actively started the work.
+- Mirror the required `S`/`M`/`L` estimate with optional labels `size:S`, `size:M`, or `size:L` if you want faster issue filtering.
 
 Checkpoints each week:
 
