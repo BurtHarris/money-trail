@@ -10,6 +10,7 @@ services:
       AIRFLOW_HOME: /app
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
       AIRFLOW__CORE__SQL_ALCHEMY_CONN: sqlite:////app/data/airflow.db
+      AIRFLOW__CORE__AUTH_MANAGER: airflow.providers.fab.auth_manager.fab_auth_manager.FabAuthManager
       AIRFLOW__CORE__LOAD_EXAMPLES: "false"
       AIRFLOW_ADMIN_USERNAME: devadmin
       AIRFLOW_ADMIN_PASSWORD: devadmin
@@ -36,7 +37,7 @@ services:
     depends_on:
       - init-airflow
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/v2/monitor/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -48,6 +49,7 @@ services:
     environment:
       AIRFLOW_HOME: /app
       AIRFLOW__CORE__SQL_ALCHEMY_CONN: sqlite:////app/data/airflow.db
+      AIRFLOW__CORE__AUTH_MANAGER: airflow.providers.fab.auth_manager.fab_auth_manager.FabAuthManager
     volumes:
       - ./data:/app/data
     command: >

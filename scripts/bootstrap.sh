@@ -33,6 +33,7 @@ if [[ "${bootstrap_airflow,,}" != "0" && "${bootstrap_airflow,,}" != "false" && 
   if [[ -z "${AIRFLOW__CORE__EXECUTOR:-}" || "${AIRFLOW__CORE__EXECUTOR}" == "SequentialExecutor" ]]; then
     export AIRFLOW__CORE__EXECUTOR="LocalExecutor"
   fi
+  export AIRFLOW__CORE__AUTH_MANAGER="${AIRFLOW__CORE__AUTH_MANAGER:-airflow.providers.fab.auth_manager.fab_auth_manager.FabAuthManager}"
 
   if ! command -v airflow >/dev/null 2>&1; then
     echo "ERROR: airflow CLI not found in PATH. Ensure dependencies are installed and run this inside the devcontainer." >&2
