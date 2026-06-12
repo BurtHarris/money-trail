@@ -18,6 +18,10 @@ RUN uv pip install --system -r requirements.txt
 # Runtime stage: minimal image with only what's needed
 FROM ${PYTHON_BASE_IMAGE}
 
+RUN apt-get update \
+	&& apt-get install -y --no-install-recommends curl \
+	&& rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
 # Copy installed packages from builder.
