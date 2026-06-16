@@ -16,36 +16,46 @@ import yaml
 _CONFIG_PATH = Path(__file__).parent.parent / "config" / "pipeline.yaml"
 _VALID_PARALLELISM_VALUES = {"sequential", "parallel"}
 
-VALID_FILE_TYPES = frozenset(
+VALID_FEC_TABLES = frozenset(
     ["indiv", "cn", "cm", "oth", "oppexp", "ccl", "weball", "pas2", "indexp"]
 )
+"""Valid FecTable identifiers — the FEC's own short codes for bulk download categories."""
+
+# Backward-compatible alias; prefer VALID_FEC_TABLES.
+VALID_FILE_TYPES = VALID_FEC_TABLES
 
 _CYCLE_RANGE_RE = re.compile(r"^(\d{4})-(\d{4})$")
 
 
 @dataclass
-class Style:
+class DownloadProfile:
+    """A named, reusable download configuration.
+
+    Specifies which FecTables to fetch and whether change detection is active.
+    Cycles reference a DownloadProfile by name rather than repeating these settings.
+    """
+
     name: str
-    file_types: list[str]
+    tables: list[str]
     change_detection: bool
 
 
 @dataclass
 class CycleConfig:
     cycle: int
-    style: Style
+    download_profile: DownloadProfile
 
 
 @dataclass
 class Parallelism:
     cycles: Literal["sequential", "parallel"]
-    file_types: Literal["sequential", "parallel"]
+    tables: Literal["sequential", "parallel"]
 
 
 @dataclass
 class PipelineConfig:
     parallelism: Parallelism
-    styles: dict[str, Style]
+    download_profiles: dict[str, DownloadProfile]
     cycles: list[CycleConfig] = field(default_factory=list)
 
 
@@ -54,19 +64,29 @@ class ScopeTarget:
     """One normalized scope target derived from Scope Config."""
 
     cycle: int
-    fec_file_type: str
-    style_key: str
+    fec_table: str
+    download_profile_key: str
     change_detection: bool
 
     @property
+    def fec_file_type(self) -> str:
+        """Deprecated: use ``fec_table`` instead."""
+        return self.fec_table
+
+    @property
     def file_type(self) -> str:
-        """Backward-compatible alias for ``fec_file_type``."""
-        return self.fec_file_type
+        """Deprecated: use ``fec_table`` instead."""
+        return self.fec_table
+
+    @property
+    def style_key(self) -> str:
+        """Deprecated: use ``download_profile_key`` instead."""
+        return self.download_profile_key
 
     @property
     def style_name(self) -> str:
-        """Backward-compatible alias for ``style_key``."""
-        return self.style_key
+        """Deprecated: use ``download_profile_key`` instead."""
+        return self.download_profile_key
 
 
 @dataclass
@@ -86,19 +106,20 @@ def build_scope_worklist(config: PipelineConfig) -> ScopeWorklist:
     """Build deterministic scope targets from Scope Config."""
     targets: list[ScopeTarget] = []
     for cycle_config in config.cycles:
-        for file_type in cycle_config.style.file_types:
+        for table in cycle_config.download_profile.tables:
             targets.append(
                 ScopeTarget(
                     cycle=cycle_config.cycle,
-                    fec_file_type=file_type,
-                    style_key=cycle_config.style.name,
-                    change_detection=cycle_config.style.change_detection,
+                    fec_table=table,
+                    download_profile_key=cycle_config.download_profile.name,
+                    change_detection=cycle_config.download_profile.change_detection,
                 )
             )
     return ScopeWorklist(parallelism=config.parallelism, targets=targets)
 
 
 # Backward-compatible aliases for existing callers; prefer the new names.
+Style = DownloadProfile  # Legacy alias: prefer DownloadProfile.
 PlanUnit = ScopeTarget  # Legacy alias: prefer ScopeTarget.
 ScopePlan = ScopeWorklist  # Legacy alias: prefer ScopeWorklist.
 build_scope_plan = build_scope_worklist  # Legacy alias: prefer build_scope_worklist.
@@ -123,40 +144,46 @@ def _expand_cycle_range(range_str: str) -> list[int]:
     return list(range(start, end + 1, 2))
 
 
-def _parse_styles(raw: dict) -> dict[str, Style]:
+def _parse_download_profiles(raw: dict) -> dict[str, DownloadProfile]:
     if not isinstance(raw, dict):
-        raise ValueError("Field 'styles' must be a mapping.")
+        raise ValueError("Field 'download_profiles' must be a mapping.")
 
-    styles: dict[str, Style] = {}
+    profiles: dict[str, DownloadProfile] = {}
     for name, cfg in raw.items():
         if not isinstance(cfg, dict):
-            raise ValueError(f"Style {name!r} must be a mapping.")
+            raise ValueError(f"DownloadProfile {name!r} must be a mapping.")
 
-        file_types = cfg.get("file_types")
-        if not isinstance(file_types, list) or not file_types:
+        tables = cfg.get("tables")
+        if not isinstance(tables, list) or not tables:
             raise ValueError(
-                f"Style {name!r} must define a non-empty 'file_types' list."
+                f"DownloadProfile {name!r} must define a non-empty 'tables' list."
             )
-        if not all(isinstance(file_type, str) for file_type in file_types):
-            raise ValueError(f"Style {name!r} has non-string values in 'file_types'.")
+        if not all(isinstance(t, str) for t in tables):
+            raise ValueError(
+                f"DownloadProfile {name!r} has non-string values in 'tables'."
+            )
 
-        unknown = set(file_types) - VALID_FILE_TYPES
+        unknown = set(tables) - VALID_FEC_TABLES
         if unknown:
             raise ValueError(
-                f"Style {name!r} references unknown file types: {sorted(unknown)}"
+                f"DownloadProfile {name!r} references unknown FecTables: {sorted(unknown)}"
             )
         change_detection = cfg.get("change_detection")
         if not isinstance(change_detection, bool):
-            raise ValueError(f"Style {name!r} must define boolean 'change_detection'.")
-        styles[name] = Style(
+            raise ValueError(
+                f"DownloadProfile {name!r} must define boolean 'change_detection'."
+            )
+        profiles[name] = DownloadProfile(
             name=name,
-            file_types=file_types,
+            tables=tables,
             change_detection=change_detection,
         )
-    return styles
+    return profiles
 
 
-def _parse_cycles(raw: list, styles: dict[str, Style]) -> list[CycleConfig]:
+def _parse_cycles(
+    raw: list, download_profiles: dict[str, DownloadProfile]
+) -> list[CycleConfig]:
     if not isinstance(raw, list):
         raise ValueError("Field 'cycles' must be a list.")
 
@@ -172,15 +199,17 @@ def _parse_cycles(raw: list, styles: dict[str, Style]) -> list[CycleConfig]:
                 f"Cycle entry must define exactly one of 'cycle' or 'cycles': {entry!r}"
             )
 
-        style_name = entry.get("style")
-        if not isinstance(style_name, str):
-            raise ValueError(f"Cycle entry must define string 'style': {entry!r}")
-        if style_name not in styles:
+        profile_name = entry.get("download_profile")
+        if not isinstance(profile_name, str):
             raise ValueError(
-                f"Cycle entry references unknown style {style_name!r}. "
-                f"Known styles: {sorted(styles)}"
+                f"Cycle entry must define string 'download_profile': {entry!r}"
             )
-        style = styles[style_name]
+        if profile_name not in download_profiles:
+            raise ValueError(
+                f"Cycle entry references unknown DownloadProfile {profile_name!r}. "
+                f"Known profiles: {sorted(download_profiles)}"
+            )
+        download_profile = download_profiles[profile_name]
 
         if has_cycle:
             try:
@@ -193,10 +222,12 @@ def _parse_cycles(raw: list, styles: dict[str, Style]) -> list[CycleConfig]:
                 raise ValueError(
                     f"Cycle values must be even years; got {cycle!r} in {entry!r}."
                 )
-            result.append(CycleConfig(cycle=cycle, style=style))
+            result.append(CycleConfig(cycle=cycle, download_profile=download_profile))
         else:
             for year in _expand_cycle_range(str(entry["cycles"])):
-                result.append(CycleConfig(cycle=year, style=style))
+                result.append(
+                    CycleConfig(cycle=year, download_profile=download_profile)
+                )
     return result
 
 
@@ -205,18 +236,18 @@ def _parse_parallelism(raw: dict) -> Parallelism:
         raise ValueError("Field 'parallelism' must be a mapping.")
 
     cycles = raw.get("cycles", "sequential")
-    file_types = raw.get("file_types", "parallel")
+    tables = raw.get("tables", "parallel")
     if cycles not in _VALID_PARALLELISM_VALUES:
         raise ValueError(
             "Field 'parallelism.cycles' must be one of: "
             f"{sorted(_VALID_PARALLELISM_VALUES)}"
         )
-    if file_types not in _VALID_PARALLELISM_VALUES:
+    if tables not in _VALID_PARALLELISM_VALUES:
         raise ValueError(
-            "Field 'parallelism.file_types' must be one of: "
+            "Field 'parallelism.tables' must be one of: "
             f"{sorted(_VALID_PARALLELISM_VALUES)}"
         )
-    return Parallelism(cycles=cycles, file_types=file_types)
+    return Parallelism(cycles=cycles, tables=tables)
 
 
 def load_config(path: Path = _CONFIG_PATH) -> PipelineConfig:
@@ -235,15 +266,17 @@ def load_config(path: Path = _CONFIG_PATH) -> PipelineConfig:
 
     parallelism = _parse_parallelism(raw.get("parallelism", {}))
 
-    styles = _parse_styles(raw.get("styles", {}))
-    if not styles:
-        raise ValueError("Configuration must define at least one style.")
+    download_profiles = _parse_download_profiles(raw.get("download_profiles", {}))
+    if not download_profiles:
+        raise ValueError("Configuration must define at least one download_profile.")
 
-    cycles = _parse_cycles(raw.get("cycles", []), styles)
+    cycles = _parse_cycles(raw.get("cycles", []), download_profiles)
     if not cycles:
         raise ValueError("Configuration must define at least one cycle entry.")
 
-    return PipelineConfig(parallelism=parallelism, styles=styles, cycles=cycles)
+    return PipelineConfig(
+        parallelism=parallelism, download_profiles=download_profiles, cycles=cycles
+    )
 
 
 PIPELINE_CONFIG: PipelineConfig = load_config()
