@@ -99,9 +99,9 @@ def build_scope_worklist(config: PipelineConfig) -> ScopeWorklist:
 
 
 # Backward-compatible aliases for existing callers; prefer the new names.
-PlanUnit = ScopeTarget
-ScopePlan = ScopeWorklist
-build_scope_plan = build_scope_worklist
+PlanUnit = ScopeTarget  # Legacy alias: prefer ScopeTarget.
+ScopePlan = ScopeWorklist  # Legacy alias: prefer ScopeWorklist.
+build_scope_plan = build_scope_worklist  # Legacy alias: prefer build_scope_worklist.
 
 
 def _expand_cycle_range(range_str: str) -> list[int]:
