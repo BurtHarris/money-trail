@@ -112,7 +112,7 @@ cycles:
         with self.assertRaisesRegex(ValueError, "even years"):
             load_config(config_path)
 
-    def test_scope_plan_units_are_deterministic_and_ordered(self) -> None:
+    def test_scope_worklist_targets_are_deterministic_and_ordered(self) -> None:
         config_path = self._write_temp_config(
             """
 parallelism:
@@ -134,19 +134,19 @@ cycles:
         )
 
         config = load_config(config_path)
-        plan = build_scope_plan(config)
+        worklist = build_scope_plan(config)
 
-        self.assertEqual(plan.parallelism.cycles, "sequential")
-        self.assertEqual(plan.parallelism.file_types, "parallel")
+        self.assertEqual(worklist.parallelism.cycles, "sequential")
+        self.assertEqual(worklist.parallelism.file_types, "parallel")
         self.assertEqual(
             [
                 (
-                    unit.cycle,
-                    unit.file_type,
-                    unit.style_name,
-                    unit.change_detection,
+                    target.cycle,
+                    target.fec_file_type,
+                    target.style_key,
+                    target.change_detection,
                 )
-                for unit in plan.plan_units
+                for target in worklist.targets
             ],
             [
                 (2024, "indiv", "current", True),
@@ -156,7 +156,7 @@ cycles:
             ],
         )
 
-    def test_scope_plan_output_is_stable_across_repeated_runs(self) -> None:
+    def test_scope_worklist_output_is_stable_across_repeated_runs(self) -> None:
         config_path = self._write_temp_config(
             """
 parallelism:
@@ -172,21 +172,21 @@ cycles:
 """
         )
 
-        first_plan = build_scope_plan(load_config(config_path))
-        second_plan = build_scope_plan(load_config(config_path))
+        first_worklist = build_scope_plan(load_config(config_path))
+        second_worklist = build_scope_plan(load_config(config_path))
 
-        self.assertEqual(first_plan.parallelism, second_plan.parallelism)
-        self.assertEqual(first_plan.plan_units, second_plan.plan_units)
+        self.assertEqual(first_worklist.parallelism, second_worklist.parallelism)
+        self.assertEqual(first_worklist.targets, second_worklist.targets)
 
-    def test_scope_plan_with_no_cycles_returns_no_plan_units(self) -> None:
+    def test_scope_worklist_with_no_cycles_returns_no_targets(self) -> None:
         config = PipelineConfig(
             parallelism=Parallelism(cycles="sequential", file_types="parallel"),
             styles={"current": Style("current", ["indiv"], True)},
             cycles=[],
         )
-        plan = build_scope_plan(config)
-        self.assertEqual(plan.parallelism, config.parallelism)
-        self.assertEqual(plan.plan_units, [])
+        worklist = build_scope_plan(config)
+        self.assertEqual(worklist.parallelism, config.parallelism)
+        self.assertEqual(worklist.targets, [])
 
 
 if __name__ == "__main__":

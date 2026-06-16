@@ -50,37 +50,55 @@ class PipelineConfig:
 
 
 @dataclass(frozen=True)
-class PlanUnit:
-    """One normalized execution unit derived from Scope Config."""
+class ScopeTarget:
+    """One normalized scope target derived from Scope Config."""
 
     cycle: int
-    file_type: str
-    style_name: str
+    fec_file_type: str
+    style_key: str
     change_detection: bool
+
+    @property
+    def file_type(self) -> str:
+        return self.fec_file_type
+
+    @property
+    def style_name(self) -> str:
+        return self.style_key
 
 
 @dataclass
-class ScopePlan:
-    """Planner output: normalized plan units plus Parallelism policy metadata."""
+class ScopeWorklist:
+    """Scope expansion output: normalized targets plus Parallelism metadata."""
 
     parallelism: Parallelism
-    plan_units: list[PlanUnit] = field(default_factory=list)
+    targets: list[ScopeTarget] = field(default_factory=list)
+
+    @property
+    def plan_units(self) -> list[ScopeTarget]:
+        return self.targets
 
 
-def build_scope_plan(config: PipelineConfig) -> ScopePlan:
-    """Build deterministic plan units from Scope Config."""
-    plan_units: list[PlanUnit] = []
+def build_scope_worklist(config: PipelineConfig) -> ScopeWorklist:
+    """Build deterministic scope targets from Scope Config."""
+    targets: list[ScopeTarget] = []
     for cycle_config in config.cycles:
         for file_type in cycle_config.style.file_types:
-            plan_units.append(
-                PlanUnit(
+            targets.append(
+                ScopeTarget(
                     cycle=cycle_config.cycle,
-                    file_type=file_type,
-                    style_name=cycle_config.style.name,
+                    fec_file_type=file_type,
+                    style_key=cycle_config.style.name,
                     change_detection=cycle_config.style.change_detection,
                 )
             )
-    return ScopePlan(parallelism=config.parallelism, plan_units=plan_units)
+    return ScopeWorklist(parallelism=config.parallelism, targets=targets)
+
+
+# Backward-compatible aliases for existing callers.
+PlanUnit = ScopeTarget
+ScopePlan = ScopeWorklist
+build_scope_plan = build_scope_worklist
 
 
 def _expand_cycle_range(range_str: str) -> list[int]:
