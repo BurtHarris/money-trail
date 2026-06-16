@@ -51,6 +51,8 @@ class PipelineConfig:
 
 @dataclass(frozen=True)
 class PlanUnit:
+    """One normalized execution unit derived from Scope Config."""
+
     cycle: int
     file_type: str
     style_name: str
@@ -59,6 +61,8 @@ class PlanUnit:
 
 @dataclass
 class ScopePlan:
+    """Planner output: normalized plan units plus Parallelism policy metadata."""
+
     parallelism: Parallelism
     plan_units: list[PlanUnit] = field(default_factory=list)
 

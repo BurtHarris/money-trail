@@ -4,7 +4,13 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from include.pipeline_config import build_scope_plan, load_config
+from include.pipeline_config import (
+    PipelineConfig,
+    Parallelism,
+    Style,
+    build_scope_plan,
+    load_config,
+)
 
 
 class TestPipelineConfig(unittest.TestCase):
@@ -171,6 +177,16 @@ cycles:
 
         self.assertEqual(first_plan.parallelism, second_plan.parallelism)
         self.assertEqual(first_plan.plan_units, second_plan.plan_units)
+
+    def test_scope_plan_with_no_cycles_returns_no_plan_units(self) -> None:
+        config = PipelineConfig(
+            parallelism=Parallelism(cycles="sequential", file_types="parallel"),
+            styles={"current": Style("current", ["indiv"], True)},
+            cycles=[],
+        )
+        plan = build_scope_plan(config)
+        self.assertEqual(plan.parallelism, config.parallelism)
+        self.assertEqual(plan.plan_units, [])
 
 
 if __name__ == "__main__":
