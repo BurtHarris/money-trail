@@ -4,7 +4,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from include.pipeline_config import load_config
+from include.pipeline_config import build_scope_plan, load_config
 
 
 class TestPipelineConfig(unittest.TestCase):
@@ -105,6 +105,72 @@ cycles:
 
         with self.assertRaisesRegex(ValueError, "even years"):
             load_config(config_path)
+
+    def test_scope_plan_units_are_deterministic_and_ordered(self) -> None:
+        config_path = self._write_temp_config(
+            """
+parallelism:
+  cycles: sequential
+  file_types: parallel
+styles:
+  current:
+    file_types: [indiv, cn]
+    change_detection: true
+  historical:
+    file_types: [cm]
+    change_detection: false
+cycles:
+  - cycle: 2024
+    style: current
+  - cycles: "2018-2020"
+    style: historical
+"""
+        )
+
+        config = load_config(config_path)
+        plan = build_scope_plan(config)
+
+        self.assertEqual(plan.parallelism.cycles, "sequential")
+        self.assertEqual(plan.parallelism.file_types, "parallel")
+        self.assertEqual(
+            [
+                (
+                    unit.cycle,
+                    unit.file_type,
+                    unit.style_name,
+                    unit.change_detection,
+                )
+                for unit in plan.plan_units
+            ],
+            [
+                (2024, "indiv", "current", True),
+                (2024, "cn", "current", True),
+                (2018, "cm", "historical", False),
+                (2020, "cm", "historical", False),
+            ],
+        )
+
+    def test_scope_plan_output_is_stable_across_repeated_runs(self) -> None:
+        config_path = self._write_temp_config(
+            """
+parallelism:
+  cycles: parallel
+  file_types: sequential
+styles:
+  current:
+    file_types: [indiv]
+    change_detection: true
+cycles:
+  - cycle: 2024
+    style: current
+"""
+        )
+
+        first_plan = build_scope_plan(load_config(config_path))
+        second_plan = build_scope_plan(load_config(config_path))
+
+        self.assertEqual(first_plan.parallelism, second_plan.parallelism)
+        self.assertEqual(first_plan.plan_units, second_plan.plan_units)
 
 
 if __name__ == "__main__":

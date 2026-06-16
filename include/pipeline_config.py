@@ -49,6 +49,36 @@ class PipelineConfig:
     cycles: list[CycleConfig] = field(default_factory=list)
 
 
+@dataclass(frozen=True)
+class PlanUnit:
+    cycle: int
+    file_type: str
+    style_name: str
+    change_detection: bool
+
+
+@dataclass
+class ScopePlan:
+    parallelism: Parallelism
+    plan_units: list[PlanUnit] = field(default_factory=list)
+
+
+def build_scope_plan(config: PipelineConfig) -> ScopePlan:
+    """Build deterministic plan units from Scope Config."""
+    plan_units: list[PlanUnit] = []
+    for cycle_config in config.cycles:
+        for file_type in cycle_config.style.file_types:
+            plan_units.append(
+                PlanUnit(
+                    cycle=cycle_config.cycle,
+                    file_type=file_type,
+                    style_name=cycle_config.style.name,
+                    change_detection=cycle_config.style.change_detection,
+                )
+            )
+    return ScopePlan(parallelism=config.parallelism, plan_units=plan_units)
+
+
 def _expand_cycle_range(range_str: str) -> list[int]:
     """Expand a Cycle Range string like ``"2010-2022"`` to individual even-year cycles."""
     m = _CYCLE_RANGE_RE.match(range_str)
