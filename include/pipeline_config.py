@@ -60,10 +60,12 @@ class ScopeTarget:
 
     @property
     def file_type(self) -> str:
+        """Backward-compatible alias for ``fec_file_type``."""
         return self.fec_file_type
 
     @property
     def style_name(self) -> str:
+        """Backward-compatible alias for ``style_key``."""
         return self.style_key
 
 
@@ -76,6 +78,7 @@ class ScopeWorklist:
 
     @property
     def plan_units(self) -> list[ScopeTarget]:
+        """Backward-compatible alias for ``targets``."""
         return self.targets
 
 
@@ -95,7 +98,7 @@ def build_scope_worklist(config: PipelineConfig) -> ScopeWorklist:
     return ScopeWorklist(parallelism=config.parallelism, targets=targets)
 
 
-# Backward-compatible aliases for existing callers.
+# Backward-compatible aliases for existing callers; prefer the new names.
 PlanUnit = ScopeTarget
 ScopePlan = ScopeWorklist
 build_scope_plan = build_scope_worklist
