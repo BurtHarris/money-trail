@@ -215,6 +215,9 @@ def _download_and_load(cycle: int, **context) -> None:
         cycle=cycle,
         source_url=url,
         source_zip_path=str(zip_path),
+        # target_parquet_path is a legacy column name in load_history; here it
+        # holds the DuckDB table reference since this DAG loads directly into
+        # DuckDB rather than writing an intermediate parquet file.
         target_parquet_path=f"raw.cn_{cycle}",
         row_count=row_count,
         etag=etag,

@@ -163,6 +163,12 @@ def _load_text_file_to_duckdb(
                 ignore_errors=True
             )
             """
+            # ignore_errors=True: FEC bulk files occasionally contain rows with
+            # encoding issues or mismatched column counts (e.g., embedded delimiters
+            # in address fields).  Problematic rows are silently skipped by DuckDB.
+            # The row count returned by this function reflects only rows that were
+            # successfully loaded; callers can compare it against expectations if
+            # data-quality alerting is required.
         )
         row_count: int = con.execute(
             f"SELECT COUNT(*) FROM {table_name}"
