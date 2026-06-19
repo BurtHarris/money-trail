@@ -1,8 +1,11 @@
 """FEC download state management utilities."""
 
-from datetime import datetime
-from typing import Dict, List, Optional
+from datetime import datetime, timezone
+from typing import TYPE_CHECKING, Dict, List, Optional
 import logging
+
+if TYPE_CHECKING:
+    from include.fec_head_probe import ProbeResult
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +45,9 @@ class DownloadStateManager:
                 )
             """)
 
-            # Table: Daily observations (one row per file per day)
+            # Table: Full Probe Ledger — one row per Universal HEAD Probe, append-only.
+            # Includes both successes and failures (probe_success=False) so outages
+            # are visible in the ledger history.
             conn.execute("""
                 CREATE TABLE IF NOT EXISTS metadata._fec_daily_observation (
                     observation_id BIGINT PRIMARY KEY,
@@ -55,9 +60,21 @@ class DownloadStateManager:
                     last_modified VARCHAR,
                     content_length BIGINT,
                     changed BOOLEAN,
-                    recorded_at TIMESTAMP
+                    recorded_at TIMESTAMP,
+                    probe_success BOOLEAN,
+                    error_message VARCHAR
                 )
             """)
+
+            # Migrate existing installations that pre-date probe_success / error_message.
+            conn.execute(
+                "ALTER TABLE metadata._fec_daily_observation "
+                "ADD COLUMN IF NOT EXISTS probe_success BOOLEAN"
+            )
+            conn.execute(
+                "ALTER TABLE metadata._fec_daily_observation "
+                "ADD COLUMN IF NOT EXISTS error_message VARCHAR"
+            )
 
             # Table: Load history (one row per successful parquet write)
             conn.execute("""
@@ -120,8 +137,9 @@ class DownloadStateManager:
         conn = duckdb.connect(self.duckdb_path, read_only=False)
 
         try:
-            observation_date = datetime.utcnow().date()
-            recorded_at = datetime.utcnow()
+            now = datetime.now(tz=timezone.utc)
+            observation_date = now.date()
+            recorded_at = now
 
             for result in check_results:
                 # Get next observation_id
@@ -132,7 +150,11 @@ class DownloadStateManager:
 
                 conn.execute(
                     """
-                    INSERT INTO metadata._fec_daily_observation VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    INSERT INTO metadata._fec_daily_observation (
+                        observation_id, file_type, cycle, observation_date,
+                        probe_time, http_status, etag, last_modified,
+                        content_length, changed, recorded_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     [
                         observation_id,
@@ -232,6 +254,117 @@ class DownloadStateManager:
 
         return changed
 
+    def append_probe_to_ledger(self, probe: "ProbeResult") -> int:
+        """Append a Universal HEAD Probe result to the Full Probe Ledger.
+
+        Both successful and failed probes are stored as first-class
+        observations.  ``probe_success`` and ``error_message`` distinguish
+        them so outage gaps are visible in the ledger history.
+
+        Args:
+            probe: The :class:`~include.fec_head_probe.ProbeResult` to store.
+
+        Returns:
+            The ``observation_id`` assigned to the new row.
+        """
+        import duckdb
+
+        conn = duckdb.connect(self.duckdb_path, read_only=False)
+        try:
+            next_id = conn.execute(
+                "SELECT COALESCE(MAX(observation_id), 0) + 1 "
+                "FROM metadata._fec_daily_observation"
+            ).fetchone()[0]
+
+            # observation_date: when the probe was performed (probe_time date).
+            # recorded_at:      when this row was written to the database.
+            # These differ if a probe result is written after some delay
+            # (e.g., during Observation Backfill after downtime).
+            observation_date = probe.probe_time.date()
+            recorded_at = datetime.now(tz=timezone.utc)
+
+            conn.execute(
+                """
+                INSERT INTO metadata._fec_daily_observation (
+                    observation_id, file_type, cycle, observation_date,
+                    probe_time, http_status, etag, last_modified,
+                    content_length, changed, recorded_at,
+                    probe_success, error_message
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                [
+                    next_id,
+                    probe.fec_table,
+                    probe.cycle,
+                    observation_date,
+                    probe.probe_time,
+                    probe.http_status,
+                    probe.etag,
+                    probe.last_modified,
+                    probe.content_length,
+                    # 'changed' is set by the freshness decision seam, not by the probe.
+                    # This field is only meaningful in rows written via
+                    # record_download_state_check(); probe ledger rows always store False.
+                    False,
+                    recorded_at,
+                    probe.probe_success,
+                    probe.error,
+                ],
+            )
+            logger.debug(
+                "Probe ledger: %s_%s observation_id=%s success=%s",
+                probe.fec_table,
+                probe.cycle,
+                next_id,
+                probe.probe_success,
+            )
+            return next_id
+        finally:
+            conn.close()
+
+    def get_latest_load_baseline(
+        self, file_type: str, cycle: int
+    ) -> Optional[Dict]:
+        """Return the latest load record for *file_type* / *cycle*, or ``None``.
+
+        Used by the Freshness Precedence Rule to establish a Load-Verified
+        baseline — the ``etag`` and ``last_modified`` of the file that was
+        most recently successfully loaded.  When this returns ``None`` the
+        file has never been loaded and a download is always required.
+
+        Args:
+            file_type: FEC short code, e.g. ``"indiv"``.
+            cycle:     Election cycle year, e.g. ``2024``.
+
+        Returns:
+            A dict with keys ``etag``, ``last_modified``, and ``loaded_at``,
+            or ``None`` if no load has been recorded for this pair.
+        """
+        import duckdb
+
+        conn = duckdb.connect(self.duckdb_path, read_only=True)
+        try:
+            result = conn.execute(
+                """
+                SELECT etag, last_modified, loaded_at
+                FROM metadata.load_history
+                WHERE file_type = ? AND cycle = ?
+                ORDER BY loaded_at DESC
+                LIMIT 1
+                """,
+                [file_type, cycle],
+            ).fetchone()
+
+            if result:
+                return {
+                    "etag": result[0],
+                    "last_modified": result[1],
+                    "loaded_at": result[2],
+                }
+            return None
+        finally:
+            conn.close()
+
     def record_load(
         self,
         file_type: str,
@@ -282,7 +415,7 @@ class DownloadStateManager:
                     source_zip_path,
                     target_parquet_path,
                     row_count,
-                    datetime.utcnow(),
+                    datetime.now(tz=timezone.utc),
                     etag,
                     last_modified,
                 ],
