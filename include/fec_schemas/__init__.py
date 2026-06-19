@@ -1,7 +1,7 @@
 """FEC schema definitions.
 
 Each sub-module (indiv, cn, cm, etc.) defines an ordered ``COLUMNS`` list of
-:class:`FECColumn` entries that serve as the single source of truth for raw
+:class:`FecColumn` entries that serve as the single source of truth for raw
 column names, readable aliases, and pyarrow types used across the pipeline.
 """
 
@@ -13,7 +13,7 @@ import pyarrow as pa
 
 
 @dataclass(frozen=True)
-class FECColumn:
+class FecColumn:
     """Metadata for a single column in an FEC bulk data file.
 
     Attributes:
