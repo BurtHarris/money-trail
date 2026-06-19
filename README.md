@@ -2,18 +2,6 @@
 
 Lightweight devcontainer-first workspace for FEC-oriented ELT development with Apache Airflow, OpenLineage, DuckDB, PostgreSQL metadata, and dbt.
 
-## VS Code hotkeys (layout first)
-
-- `Ctrl+K`, then `Z`: toggle Zen Mode (focus on editor)
-- `Esc`, `Esc`: exit Zen Mode
-- `F11`: toggle full screen
-- `Ctrl+B`: toggle Side Bar
-- `Ctrl+J`: toggle bottom Panel (Terminal/Problems/Output)
-- `Ctrl+\\`: split editor
-- `Ctrl+1` / `Ctrl+2` / `Ctrl+3`: focus editor group 1/2/3
-- `F5`: run selected profile with debugger (when supported)
-- `Ctrl+F5`: run selected profile without debugger
-
 ## What is included
 
 - VS Code devcontainer for Python-based data engineering work
