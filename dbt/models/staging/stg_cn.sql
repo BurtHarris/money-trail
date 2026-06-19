@@ -7,7 +7,7 @@
 -- - Whitespace trimmed from text fields
 -- - NULL values standardized
 
-{{ config(materialized='view') }}
+{{ config(materialized='view', tags=['cn']) }}
 
 {% set cycles = [2024, 2022, 2020] %}
 
