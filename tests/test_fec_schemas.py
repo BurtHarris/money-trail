@@ -1,6 +1,6 @@
 """Tests for include/fec_schemas/* — column-count contracts and special attributes.
 
-Each schema file defines an ordered ``COLUMNS`` list of :class:`FECColumn`
+Each schema file defines an ordered ``COLUMNS`` list of :class:`FecColumn`
 entries.  These tests verify:
 
 1. The column count for each file type matches the FEC-published specification.
@@ -15,7 +15,7 @@ import unittest
 
 import pyarrow as pa
 
-from include.fec_schemas import FECColumn
+from include.fec_schemas import FecColumn
 
 
 # ---------------------------------------------------------------------------
@@ -101,12 +101,12 @@ class TestFecSchemaColumnMetadata(unittest.TestCase):
 
     def _check_columns(self, file_type: str) -> None:
         module = importlib.import_module(f"include.fec_schemas.{file_type}")
-        columns: list[FECColumn] = module.COLUMNS
+        columns: list[FecColumn] = module.COLUMNS
         for i, col in enumerate(columns):
             self.assertIsInstance(
                 col,
-                FECColumn,
-                msg=f"{file_type}[{i}] must be a FECColumn instance",
+                FecColumn,
+                msg=f"{file_type}[{i}] must be a FecColumn instance",
             )
             self.assertTrue(
                 col.fec_name,
