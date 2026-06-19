@@ -53,7 +53,7 @@ bash scripts/start_airflow.sh
 
 4. Airflow startup issues:
    - Check [scripts/bootstrap.sh](scripts/bootstrap.sh) and [scripts/start_airflow.sh](scripts/start_airflow.sh).
-   - Verify writable paths: `.airflow/`, `logs/`, `data/raw/`, `data/duckdb/`.
+   - Verify writable paths: `.airflow/`, `logs/`, `data/raw/`, `data/stage/`, `data/ducklake/`, `data/duckdb/`, and `exports/`.
    - Check generated logs in [logs/](logs/).
 
 ## Repository Conventions

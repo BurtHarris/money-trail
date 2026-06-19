@@ -51,6 +51,7 @@ Lightweight devcontainer-first workspace for FEC-oriented ELT development with A
 - `dags/` - Airflow DAGs (FEC download, parquet write, dbt trigger)
 - `dbt/` - dbt project with staging and marts models
 - `data/` - local data artifacts (parquet files, DuckDB, raw ZIPs)
+- `exports/` - stable analyst-facing CSV/report/snapshot outputs kept host-accessible
 - `plugins/` - Airflow plugin modules, including the in-UI docs browser
 - `scripts/` - bootstrap and local startup helpers
 - `docs/` - architecture decisions (ADRs), developer guide, runbooks
