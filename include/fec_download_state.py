@@ -137,8 +137,9 @@ class DownloadStateManager:
         conn = duckdb.connect(self.duckdb_path, read_only=False)
 
         try:
-            observation_date = datetime.now(tz=timezone.utc).date()
-            recorded_at = datetime.now(tz=timezone.utc)
+            now = datetime.now(tz=timezone.utc)
+            observation_date = now.date()
+            recorded_at = now
 
             for result in check_results:
                 # Get next observation_id
@@ -275,6 +276,10 @@ class DownloadStateManager:
                 "FROM metadata._fec_daily_observation"
             ).fetchone()[0]
 
+            # observation_date: when the probe was performed (probe_time date).
+            # recorded_at:      when this row was written to the database.
+            # These differ if a probe result is written after some delay
+            # (e.g., during Observation Backfill after downtime).
             observation_date = probe.probe_time.date()
             recorded_at = datetime.now(tz=timezone.utc)
 
@@ -297,7 +302,10 @@ class DownloadStateManager:
                     probe.etag,
                     probe.last_modified,
                     probe.content_length,
-                    False,  # changed is determined by the freshness seam, not the probe alone
+                    # 'changed' is set by the freshness decision seam, not by the probe.
+                    # This field is only meaningful in rows written via
+                    # record_download_state_check(); probe ledger rows always store False.
+                    False,
                     recorded_at,
                     probe.probe_success,
                     probe.error,
