@@ -24,6 +24,7 @@ Brief definitions of developer terms:
 - **Devcontainer:** A containerized development environment defined in `.devcontainer/`. Opening this repository in VS Code or GitHub Codespaces automatically builds and starts the devcontainer, giving every contributor an identical editor environment with all tools pre-installed.
 - **DATA_DIR:** An environment variable that points to the root of the local data directory (`/workspaces/money-trail/data` in devcontainer, `/app/data` in the runtime compose stack). Scripts and DAGs use this variable instead of hardcoded paths so the same code works in both environments.
 - **Duck Lake:** Parquet files in `data/ducklake/` (target state) serving as primary immutable storage for FEC data. During migration, `data/duckdb/` remains a compatibility/query surface. See ADR 0009 and the data-tier path contract.
+- **Exports directory:** The top-level `exports/` directory is the stable host-visible handoff point for analyst-facing CSVs, reports, and curated snapshots. Runtime compose mounts it into `/app/exports`.
 - **Raw Schema:** DuckDB external tables (prefixed `raw_`) pointing to parquet files. Owned by Airflow. See ADR 0006.
 - **Staging Schema:** dbt-managed views (prefixed `stg_`) that clean and alias raw data. See ADR 0004.
 - **Marts Schema:** dbt-managed views aggregating or filtering staging data for analytics. See ADR 0006.
@@ -39,6 +40,7 @@ Key locations:
 
 - Devcontainer (interactive editor): uses `.devcontainer/devcontainer.json` and `.devcontainer/docker-compose.yml`; environment variables set for development include `DATA_DIR=/workspaces/money-trail/data`.
 - Runtime (Airflow compose): canonical entrypoint `compose/runtime.yml`; compatibility entrypoint `docker-compose.yml`. Runtime services mount host `./data` to `/app/data` and use `DATA_DIR=/app/data`.
+- Analyst-facing outputs: runtime services also mount host `./exports` to `/app/exports`, so files written there remain directly visible from Windows/host tooling.
 - Environment boundary contract: see `docs/architecture/dev-vs-runtime-topology.md`.
 
 ## Common commands

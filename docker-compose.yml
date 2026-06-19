@@ -24,6 +24,7 @@ services:
       - ./docs:/app/docs
       - ./plugins:/app/plugins
       - ./data:/app/data
+      - ./exports:/app/exports
       - ./logs:/app/logs
       - ./scripts:/app/scripts
     develop:
@@ -83,6 +84,7 @@ services:
       - ./docs:/app/docs
       - ./plugins:/app/plugins
       - ./data:/app/data
+      - ./exports:/app/exports
       - ./logs:/app/logs
       - ./scripts:/app/scripts
     develop:

@@ -22,6 +22,7 @@ This directory collects runbooks for the money-trail project: devcontainer setup
 Docker & Data tiers
 - DATA_DIR is set for devcontainer (/workspaces/money-trail/data) and compose (/app/data).
 - Host mounts: Compose mounts ./data into /app/data; place durable analytic outputs in data/ducklake and raw ingests in data/raw.
+- Analyst-facing outputs belong in exports/ on the host and are mounted into runtime at /app/exports.
 - Starting runtime: `bash scripts/runtime.sh up`  # canonical runtime lifecycle helper
 - Stopping runtime: `bash scripts/runtime.sh down`
 - Runtime status: `bash scripts/runtime.sh ps`
@@ -30,4 +31,6 @@ Docker & Data tiers
 
 Windows notes
 - Avoid absolute Windows paths in code; prefer DATA_DIR and repository-relative paths.
+- Validate analyst handoff paths end-to-end with `bash scripts/bootstrap.sh`, then confirm both `exports/` and `data/ducklake/` exist in the repository root before starting runtime.
+- After `bash scripts/runtime.sh up`, confirm the runtime sees the same host-facing exports path with `docker compose -f compose/runtime.yml exec scheduler ls /app/exports`.
 - If encountering path length or permission issues on Windows, consult docs/adr/0002-storage-layout.md.
